@@ -9,15 +9,8 @@ require('dotenv').config();
 const signup = async (req,res) =>{
     try {
         const {name,email,password,adminCode} = req.body;
+
         const emailCheck =await User.findOne({email});
-
-        if(!name || !email || !password){
-            return res.status(400).json({message:"all fields are required"});
-        }
-
-        if(!emailRegex.test(email)){
-            return res.status(400).json({message:"invalid email format"})
-        }
 
         if(emailCheck){
             return res.status(409).json({message:"email already exists"})

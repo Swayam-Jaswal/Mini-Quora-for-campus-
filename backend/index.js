@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 
 const authRoutes = require('../backend/routes/auth.routes');
 const adminRoutes = require('../backend/routes/admin.routes');
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(helmet());
 
 app.use('/auth',authRoutes);
 app.use('/admin',adminRoutes);
