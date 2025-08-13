@@ -4,69 +4,61 @@ const {emailRegex,passwordRegex} = require('../utils/validator');
 const {sendVerificationEmail} = require("../utils/sendEmail");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require("crypto");
 require('dotenv').config();
 
-const signup = async (req,res) =>{
-    try {
-        const {name,email,password,adminCode} = req.body;
-
-        const emailCheck =await User.findOne({email});
-
-        if(emailCheck){
-            return res.status(409).json({message:"email already exists"})
-        }
-
-        const hashedPassword = await bcrypt.hash(password,10);
-
-        let role = "user";
-        if(adminCode){
-            const foundCode = await AdminCode.findOne({code:adminCode});
-
-            if(!foundCode || foundCode.expiresAt<new Date()){
-                return res.status(400).json({message:"Invalid or expired admin token"});
-            }
-
-            role = "admin";
-            await AdminCode.deleteOne({_id:foundCode._id})
-        }
-
-        const newUser = new User({
-            name,
-            email,
-            password:hashedPassword,
-            role
-        })
-
-        await newUser.save();
-
-        // const mailToken = jwt.sign({userID:newUser._id},process.env.JWT_SECRET,{expiresIn:"10m"});
-
-        // const verificationLink = `http://localhost:5173/verify-email?token=${mailToken}`;
-
-        // await sendVerificationEmail(email,verificationLink);
-
-        const crypto = require("crypto");
-
-        const verificationToken = crypto.randomBytes(32).toString("hex");
-        const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
-        newUser.verificationToken = verificationToken;
-        newUser.verificationExpires = verificationExpires;
-        await newUser.save();
-
-        const verificationLink = `http://yourdomain.com/verify-email?token=${verificationToken}`;
-       try {
-         await sendVerificationEmail(email, verificationLink);
-       } catch (error) {
-         return res.status(500).json({ message: "Failed to send verification email", error });
-       }
-
-
-        return res.status(201).json({message:"User created successfully"});
-    } catch (error) {
-        return res.status(500).json({message:"error registering user",error})
+const signup = async (req, res) => {
+  try {
+    const { name, email, password, adminCode } = req.body;
+    const emailCheck = await User.findOne({ email });
+    if (emailCheck) {
+      return res.status(409).json({ message: "email already exists" });
     }
-}
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let role = "user";
+    if (adminCode) {
+      const foundCode = await AdminCode.findOne({ code: adminCode });
+      if (!foundCode || foundCode.expiresAt < new Date()) {
+        return res
+          .status(400)
+          .json({ message: "Invalid or expired admin token" });
+      }
+      role = "admin";
+      await AdminCode.deleteOne({ _id: foundCode._id });
+    }
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
+
+    await newUser.save();
+
+    // const mailToken = jwt.sign({userID:newUser._id},process.env.JWT_SECRET,{expiresIn:"10m"});
+    // const verificationLink = `http://localhost:5173/verify-email?token=${mailToken}`;
+    // await sendVerificationEmail(email,verificationLink);
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    newUser.verificationToken = verificationToken;
+    newUser.verificationExpires = verificationExpires;
+    await newUser.save();
+
+    const verificationLink = `http://localhost:5173.com/verify-email?token=${verificationToken}`;
+    try {
+      await sendVerificationEmail(email, verificationLink);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: "Failed to send verification email", error });
+    }
+    return res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "error registering user", error });
+  }
+};
 
 const verifyEmail = async (req, res) => {
   try {
