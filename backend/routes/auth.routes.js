@@ -2,7 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const {verifyToken} = require('../middlewares/auth.middleware');
 const router = express.Router();
-const {signup,verifyEmail,login,logout} = require('../controllers/auth.controller');
+const {signup,verifyEmail,resendVerificationEmail,login,me,logout} = require('../controllers/auth.controller');
 const rateLimit = require('express-rate-limit');
 const validateSignup = require('../middlewares/validateSignup');
 const handleValidation = require('../middlewares/handleValidation');
@@ -22,11 +22,9 @@ const loginLimiter = rateLimit({
 router.post('/signup', signupLimiter, validateSignup, handleValidation, signup);
 
 router.get('/verify-email',verifyEmail);
+router.post('/resend-verification',resendVerificationEmail);
 router.post('/login',loginLimiter,login);
 router.post('/logout',verifyToken,logout);
-router.get('/me', verifyToken, async (req, res) => {
-  const user = await User.findById(req.user.id).select("-password");
-  res.status(200).json(user);
-});
+router.get('/me', verifyToken,me)
 
 module.exports = router;

@@ -9,10 +9,10 @@ import {Provider} from 'react-redux';
 
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  <>
     <Provider store={store}>
     <App />
     </Provider>
     <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
-  </StrictMode>
+  </>
 )

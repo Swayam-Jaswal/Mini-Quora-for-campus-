@@ -6,6 +6,7 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Register() {
+  const [registeredEmail,setRegisteredEmail] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,6 +32,7 @@ export default function Register() {
       const res = await axios.post(REGISTER_URL,formData,{withCredentials:true});
       if (res.status === 201) {
         toast.success("Signup successful!");
+        setRegisteredEmail(formData.email);
         setFormData({
           name: "",
           email: "",
@@ -52,7 +54,7 @@ export default function Register() {
           Create an Account
         </h2>
         {boxChange ? (
-          <EmailVerifyNotice />
+          <EmailVerifyNotice email={registeredEmail} />
         ) : (
           <RegisterForm
             formData={formData}

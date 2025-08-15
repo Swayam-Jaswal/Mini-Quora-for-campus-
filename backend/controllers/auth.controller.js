@@ -5,6 +5,7 @@ const {sendVerificationEmail} = require("../utils/sendEmail");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require("crypto");
+const { json } = require('stream/consumers');
 require('dotenv').config();
 
 const signup = async (req, res) => {
@@ -31,13 +32,10 @@ const signup = async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      isVerified:false
     });
 
     await newUser.save();
-
-    // const mailToken = jwt.sign({userID:newUser._id},process.env.JWT_SECRET,{expiresIn:"10m"});
-    // const verificationLink = `http://localhost:5173/verify-email?token=${mailToken}`;
-    // await sendVerificationEmail(email,verificationLink);
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
@@ -46,7 +44,7 @@ const signup = async (req, res) => {
     newUser.verificationExpires = verificationExpires;
     await newUser.save();
 
-    const verificationLink = `http://localhost:5173.com/verify-email?token=${verificationToken}`;
+    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
     try {
       await sendVerificationEmail(email, verificationLink);
     } catch (error) {
@@ -78,7 +76,7 @@ const verifyEmail = async (req, res) => {
     }
 
     if (user.isVerified) {
-      return res.status(200).json({ message: "User already verified" });
+      return res.status(400).json({ message: "User already verified" });
     }
 
     user.isVerified = true;
@@ -92,6 +90,34 @@ const verifyEmail = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+const resendVerificationEmail = async(req,res)=>{
+  try {
+    const {email} = req.body;
+
+    if(!email) return res.status(400).json({message:"Email is required"});
+
+    const user = await User.findOne({email});
+
+    if(!user) return res.status(404).json({message:"User not found"});
+
+    if(user.isVerified) return res.status(400).json({message:"user already verified"});
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    user.verificationToken = verificationToken;
+    user.verificationExpires = verificationExpires;
+    await user.save();
+
+    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`
+    await sendVerificationEmail(user.email,verificationLink);
+
+    return res.status(200).json({message:"verification link resent successfully"})
+  } catch (error) {
+    return res.status(500).json({message:"Couldnt resent email verification link"});
+  }
+}
 
 const login = async(req,res)=>{
     try {
@@ -149,9 +175,26 @@ const login = async(req,res)=>{
     }
 }
 
+const me = async(req,res)=> {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({
+      email: user.email,
+      isVerified: Boolean(user.isVerified),
+      name: user.name,
+      role:user.role
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 const logout = async (req, res) => {
   res.clearCookie("access_token");
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-module.exports = {signup,verifyEmail,login,logout};
+module.exports = {signup,verifyEmail,resendVerificationEmail,login,me,logout};
