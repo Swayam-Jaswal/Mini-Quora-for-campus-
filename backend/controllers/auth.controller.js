@@ -187,6 +187,7 @@ const me = async(req,res)=> {
       name: user.name,
       role:user.role
     });
+
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
