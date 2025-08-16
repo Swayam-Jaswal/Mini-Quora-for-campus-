@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from 'react'
 import './App.css'
-import Register from './components/auth/signup/signup';
-import Login from './components/auth/login/login';
-import VerifyEmail from "./components/pages/verifyEmail";
+import Register from './features/auth/pages/Signup';
+import Login from './features/auth/pages/Login';
+import VerifyEmail from "./features/auth/pages/VerifyEmail";
 
 function App() {
   return (
