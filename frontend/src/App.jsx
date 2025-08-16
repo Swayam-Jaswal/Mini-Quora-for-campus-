@@ -1,20 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useState } from 'react'
-import './App.css'
-import Register from './features/auth/pages/Signup';
-import Login from './features/auth/pages/Login';
-import VerifyEmail from "./features/auth/pages/VerifyEmail";
+import { BrowserRouter as Router } from "react-router-dom";
+import AppRoutes from "./routes/AppRoutes";
+import "./App.css";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/register" element={<Register/>} />
-        <Route path="/login" element={<Login/>}/>
-        <Route path="/verify-email" element={<VerifyEmail/>}/>
-      </Routes>
+      <AppRoutes />
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
