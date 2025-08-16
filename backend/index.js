@@ -6,6 +6,8 @@ const helmet = require('helmet');
 
 const authRoutes = require('../backend/routes/auth.routes');
 const adminRoutes = require('../backend/routes/admin.routes');
+const questionRoutes = require("./routes/question.routes");
+const answerRoutes = require("./routes/answer.routes");
 const dotenv = require('dotenv').config();
 const mongoDB = require('./config/db');
 mongoDB();
@@ -22,6 +24,8 @@ app.use(helmet());
 
 app.use('/auth',authRoutes);
 app.use('/admin',adminRoutes);
+app.use("/api/questions", questionRoutes);
+app.use("/api/answers", answerRoutes);
 
 app.listen(PORT,()=>{
     console.log(`Server is running on ${PORT}`);
