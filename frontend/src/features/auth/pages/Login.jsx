@@ -3,8 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../../app/authSlice';
 import { toast } from 'react-toastify';
 import LoginForm from '../components/LoginForm';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
@@ -20,6 +22,7 @@ export default function Login() {
     if (loginUser.fulfilled.match(result)) {
       toast.success('Login successful!');
       setFormData({ email: '', password: '' });
+      navigate('/');
     } else {
       toast.error(result.payload || 'Login failed');
     }

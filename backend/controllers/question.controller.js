@@ -4,7 +4,13 @@ const createQuestion = async(req,res)=>{
     try {
         const {title,body,tags,isAnonymous} = req.body;
         
-        if(!title && !body) return res.status(400).json({message:"title and body are required"});
+        if(!title || !body) return res.status(400).json({message:"title and body are required"});
+
+        if (!req.user || !req.user.id) {
+          return res
+            .status(401)
+            .json({ message: "Unauthorized: no user found" });
+        }
 
         const question = new Question({
             title,
@@ -13,7 +19,6 @@ const createQuestion = async(req,res)=>{
             isAnonymous,
             author:req.user.id,
         })
-
         await question.save();
 
         return res.status(200).json({message:"question created successfully",question});

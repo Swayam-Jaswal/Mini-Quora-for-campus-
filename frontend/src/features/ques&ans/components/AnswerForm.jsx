@@ -30,6 +30,7 @@ export default function AnswerForm({onSubmit}) {
       setFormData({
         body:"",
       })
+      toast.success("Answer posted successfully");
     } catch (error) {
       toast.error("Something went wrong. Please try again.")
     }finally{

@@ -41,6 +41,7 @@ export default function QuestionForm({onSubmit}) {
         body:"",
         tags:"",
       })
+      toast.success("Question created successfull")
     } catch (error) {
       toast.error("Something went wrong. Please try again.")
     }finally{

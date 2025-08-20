@@ -9,9 +9,11 @@ const adminCodeLimiter = rateLimit({
   max: 5,
   message: "Too many admin code requests. Please try again later.",
   keyGenerator: (req) => {
-    return req.user?.id || req.ip; 
+
+    return req.user?.id || rateLimit.ipKeyGenerator(req);
   }
 });
+
 router.post("/generate-code",verifyToken,verifyAdmin,adminCodeLimiter,generateAdminCode);
 
 module.exports = router;

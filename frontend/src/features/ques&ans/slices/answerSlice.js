@@ -8,21 +8,27 @@ export const fetchAnswers = createAsyncThunk("answers/fetchByQuestion",async(que
     return res.data;
 });
 
-export const createAnswer = createAsyncThunk("answers/create", async ({ questionId, body }, { getState }) => {
-  const token = getState().auth.user?.token;
-  const res = await axios.post(
-    `${BASE_URL}/api/answers/create-answer/${questionId}`,
-    { body },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return res.data.answer;
-});
+export const createAnswer = createAsyncThunk(
+  "answers/create",
+  async ({ questionId, body }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/answers/create-answer/${questionId}`,
+        { body },
+        { withCredentials: true }
+      );
+      return res.data.answer; // ensure your controller returns { answer }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to create answer");
+    }
+  }
+);
 
 const answerSlice = createSlice({
   name: "answers",
   initialState: {
     list: [],
-    loading: flase,
+    loading: false,
     error: null,
   },
   reducers: {

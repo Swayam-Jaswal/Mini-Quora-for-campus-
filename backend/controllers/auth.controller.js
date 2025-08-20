@@ -119,61 +119,55 @@ const resendVerificationEmail = async(req,res)=>{
   }
 }
 
-const login = async(req,res)=>{
-    try {
-        const {email,password} = req.body;
-        const existingUser = await User.findOne({email});
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const existingUser = await User.findOne({ email });
 
-        if(!existingUser.isVerified){
-            return res.status(400).json({message:"Email not verified. Verify your email to proceed"})
-        }
-
-        if(!email || !password){
-            return res.status(400).json({message:"email and password required"});
-        }
-        
-        if(!existingUser){
-            return res.status(404).json({message:"user not found"});
-        }
-        
-        const passwordCheck = await bcrypt.compare(password,existingUser.password);
-
-        if(!passwordCheck){
-            return res.status(400).json({message:"invalid password"});
-        }
-
-        const tokenData = {
-            id: existingUser._id,
-            name:existingUser.name,
-            email:existingUser.email,
-            role:existingUser.role
-        }
-
-        const token = jwt.sign(tokenData,process.env.JWT_SECRET,{
-            expiresIn:"7d"
-        });
-        res.cookie("access_token",token,{
-            httponly:true,
-            sameSite:"Strict",
-            maxAge:7 * 24 * 60 * 60 * 1000,
-            secure: process.env.NODE_ENV === "production"
-        });
-
-        res.status(200).json({
-          message: "logged in successfully",
-          user: {
-            id: existingUser._id,
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role,
-          },
-        });
-
-    } catch (error) {
-        console.error("Login error:", error);
-        return res.status(500).json({message:"error logging in",error})
+    if (!existingUser) {
+      return res.status(404).json({ message: "user not found" });
     }
-}
+
+    if (!existingUser.isVerified) {
+      return res.status(400).json({ message: "Email not verified. Verify your email to proceed" });
+    }
+
+    const passwordCheck = await bcrypt.compare(password, existingUser.password);
+    if (!passwordCheck) {
+      return res.status(400).json({ message: "invalid password" });
+    }
+
+    const tokenData = {
+      id: existingUser._id,
+      name: existingUser.name,
+      email: existingUser.email,
+      role: existingUser.role,
+    };
+
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    // ✅ Proper cookie setup for localhost
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true only with https
+      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "logged in successfully",
+      user: {
+        id: existingUser._id,
+        name: existingUser.name,
+        email: existingUser.email,
+        role: existingUser.role,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "error logging in", error });
+  }
+};
 
 const me = async(req,res)=> {
   try {
