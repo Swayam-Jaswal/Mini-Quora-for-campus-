@@ -1,47 +1,35 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
-export default function AnswerForm({onSubmit}) {
+export default function AnswerForm({ onSubmit }) {
+  const [formData, setFormData] = useState({ body: "" });
+  const [loading, setLoading] = useState(false);
 
-  const [formData,setFormData] = useState({
-    body:"",
-  });
-
-  const [loading,setLoading] = useState(false);
-
-  const handleOnChange=(e)=>{
-    const {name,value} = e.target;
-    setFormData({
-      ...formData,
-      [name]:value,
-    })
+  const handleOnChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  
-  const handleSubmit=async(e)=>{
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if(!formData.body.trim()){
-      toast.error("Body cannot be empty");
+    if (!formData.body.trim()) {
+      return toast.error("Body cannot be empty");
     }
     setLoading(true);
     try {
-      await onSubmit({
-        body:formData.body.trim(),
-      })
-      setFormData({
-        body:"",
-      })
+      await onSubmit({ body: formData.body.trim() });
+      setFormData({ body: "" });
       toast.success("Answer posted successfully");
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.")
-    }finally{
-      setLoading(false)
-    };
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-black/20 p-4 rounded-xl shadow mt-4"
+      className="bg-black/20 p-4 rounded-xl shadow mt-6"
     >
       <h2 className="text-lg font-semibold mb-3">Your Answer</h2>
 

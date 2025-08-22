@@ -15,43 +15,32 @@ const signup = async (req, res) => {
     if (emailCheck) {
       return res.status(409).json({ message: "email already exists" });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     let role = "user";
+
     if (adminCode) {
       const foundCode = await AdminCode.findOne({ code: adminCode });
       if (!foundCode || foundCode.expiresAt < new Date()) {
-        return res
-          .status(400)
-          .json({ message: "Invalid or expired admin token" });
+        return res.status(400).json({ message: "Invalid or expired admin token" });
       }
       role = "admin";
       await AdminCode.deleteOne({ _id: foundCode._id });
     }
-    const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-      isVerified:false
-    });
 
+    const newUser = new User({ name, email, password: hashedPassword, role, isVerified: false });
+
+    const verificationToken = newUser.createVerificationToken();
     await newUser.save();
 
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+    const verificationLink = `${process.env.FRONTEND_BASE_URL}/verify-email?token=${verificationToken}`;
 
-    newUser.verificationToken = verificationToken;
-    newUser.verificationExpires = verificationExpires;
-    await newUser.save();
-
-    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
     try {
       await sendVerificationEmail(email, verificationLink);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Failed to send verification email", error });
+      return res.status(500).json({ message: "Failed to send verification email", error });
     }
+
     return res.status(201).json({ message: "User created successfully" });
   } catch (error) {
     return res.status(500).json({ message: "error registering user", error });
@@ -61,26 +50,19 @@ const signup = async (req, res) => {
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
+    if (!token) return res.status(400).json({ message: "Verification token missing" });
 
-    if (!token) {
-      return res.status(400).json({ message: "Verification token missing" });
-    }
-
+    const hash = crypto.createHash("sha256").update(token).digest("hex");
     const user = await User.findOne({
-      verificationToken: token,
-      verificationExpires: { $gt: new Date() }
+      verificationTokenHash: hash,
+      verificationExpires: { $gt: Date.now() },
     });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: "User already verified" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
 
     user.isVerified = true;
-    user.verificationToken = undefined;
+    user.verificationTokenHash = undefined;
     user.verificationExpires = undefined;
     await user.save();
 
@@ -91,33 +73,26 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-const resendVerificationEmail = async(req,res)=>{
+const resendVerificationEmail = async (req, res) => {
   try {
-    const {email} = req.body;
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
 
-    if(!email) return res.status(400).json({message:"Email is required"});
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
 
-    const user = await User.findOne({email});
-
-    if(!user) return res.status(404).json({message:"User not found"});
-
-    if(user.isVerified) return res.status(400).json({message:"user already verified"});
-
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
-    user.verificationToken = verificationToken;
-    user.verificationExpires = verificationExpires;
+    const token = user.createVerificationToken();
     await user.save();
 
-    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`
-    await sendVerificationEmail(user.email,verificationLink);
+    const verificationLink = `${process.env.FRONTEND_BASE_URL}/verify-email?token=${token}`;
+    await sendVerificationEmail(user.email, verificationLink);
 
-    return res.status(200).json({message:"verification link resent successfully"})
+    return res.status(200).json({ message: "Verification link resent successfully" });
   } catch (error) {
-    return res.status(500).json({message:"Couldnt resent email verification link"});
+    return res.status(500).json({ message: "Couldn't resend email verification link" });
   }
-}
+};
 
 const login = async (req, res) => {
   try {
@@ -169,19 +144,19 @@ const login = async (req, res) => {
   }
 };
 
-const me = async(req,res)=> {
+const me = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json({
+      id: user._id,
       email: user.email,
       isVerified: Boolean(user.isVerified),
       name: user.name,
-      role:user.role
+      role: user.role
     });
-
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

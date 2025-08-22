@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const {emailRegex} = require('../utils/validator');
+const { emailRegex } = require('../utils/validator');
+const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,26 +18,29 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "password is required"],
-      minlength: [8, "Password Must be atleast 8 characters"],
+      minlength: [8, "Password must be at least 8 characters"],
     },
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-    verificationExpires: {
-      type: Date,
-    },
     isVerified: {
       type: Boolean,
       default: false,
     },
-    verificationToken: {
-        type: String,
-    }
+    verificationTokenHash: String,
+    verificationExpires: Date,
   },
   { timestamps: true }
 );
 
-const User = mongoose.model('User',userSchema);
+userSchema.methods.createVerificationToken = function () {
+  const token = crypto.randomBytes(32).toString("hex");
+  this.verificationTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  this.verificationExpires = Date.now() + 10 * 60 * 1000;
+  return token;
+};
+
+const User = mongoose.model("User", userSchema);
 module.exports = User;

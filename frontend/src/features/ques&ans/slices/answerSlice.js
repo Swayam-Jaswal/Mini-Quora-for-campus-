@@ -1,13 +1,22 @@
-import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const fetchAnswers = createAsyncThunk("answers/fetchByQuestion",async(questionId)=>{
-    const res = await axios.get(`${BASE_URL}/api/answers/get-answers/${questionId}`);
-    return res.data;
-});
+// ✅ Fetch answers by questionId
+export const fetchAnswers = createAsyncThunk(
+  "answers/fetchByQuestion",
+  async (questionId, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/answers/get-answers/${questionId}`);
+      return res.data.answers; // 👈 backend must return { answers: [...] }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to fetch answers");
+    }
+  }
+);
 
+// ✅ Create a new answer
 export const createAnswer = createAsyncThunk(
   "answers/create",
   async ({ questionId, body }, { rejectWithValue }) => {
@@ -17,7 +26,7 @@ export const createAnswer = createAsyncThunk(
         { body },
         { withCredentials: true }
       );
-      return res.data.answer; // ensure your controller returns { answer }
+      return res.data.answer; // 👈 backend must return { answer }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to create answer");
     }
@@ -32,11 +41,10 @@ const answerSlice = createSlice({
     error: null,
   },
   reducers: {
-    clearAnswer: (state) => {
+    clearAnswers: (state) => {
       state.list = [];
     },
   },
-
   extraReducers: (builder) => {
     builder
       .addCase(fetchAnswers.pending, (state) => {
@@ -48,10 +56,10 @@ const answerSlice = createSlice({
       })
       .addCase(fetchAnswers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload;
       })
       .addCase(createAnswer.fulfilled, (state, action) => {
-        state.list.unshift(action.payload);
+        state.list.unshift(action.payload); // new answer on top
       });
   },
 });

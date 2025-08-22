@@ -1,8 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { MessageSquarePlus } from "lucide-react";``
+import { toast } from "react-toastify";
+
 import { fetchQuestionById } from "../slices/questionSlice";
 import { fetchAnswers, createAnswer, clearAnswers } from "../slices/answerSlice";
+
 import QuestionCard from "../components/QuestionCard";
 import AnswerCard from "../components/AnswerCard";
 import AnswerForm from "../components/AnswerForm";
@@ -19,6 +23,8 @@ export default function QuestionDetailsPage() {
     (state) => state.answers
   );
 
+  const [showAnswerForm, setShowAnswerForm] = useState(false);
+
   useEffect(() => {
     dispatch(fetchQuestionById(id));
     dispatch(fetchAnswers(id));
@@ -28,8 +34,15 @@ export default function QuestionDetailsPage() {
     };
   }, [dispatch, id]);
 
-  const handleAnswerSubmit = (data) => {
-    return dispatch(createAnswer({ questionId: id, body: data.body }));
+  const handleAnswerSubmit = async (data) => {
+    try {
+      await dispatch(createAnswer({ questionId: id, body: data.body })).unwrap();
+      toast.success("Answer posted successfully");
+      setShowAnswerForm(false); 
+    } catch (error) {
+      console.error("Answer post failed:", error);
+      toast.error(error || "Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -44,18 +57,21 @@ export default function QuestionDetailsPage() {
               id={question._id}
               title={question.title}
               body={question.body}
+              tags={question.tags}
+              authorId={question.author?._id}
             />
           ) : (
             <p className="text-red-400">Question not found</p>
           )}
 
-          {/* Answers */}
-          <h3 className="text-lg font-semibold mt-6 mb-3">Answers</h3>
+          <h3 className="text-lg font-semibold mt-6 mb-3">
+            Answers ({answers?.length || 0})
+          </h3>
           {answersLoading && (
             <p className="text-gray-400">Loading answers...</p>
           )}
           <div className="space-y-3">
-            {answers.map((a) => (
+            {answers?.map((a) => (
               <AnswerCard
                 key={a._id}
                 body={a.body}
@@ -66,8 +82,17 @@ export default function QuestionDetailsPage() {
             ))}
           </div>
 
-          {/* Answer Form */}
-          <AnswerForm onSubmit={handleAnswerSubmit} />
+          {!showAnswerForm ? (
+            <button
+              onClick={() => setShowAnswerForm(true)}
+              className="mt-6 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2 px-4 font-medium transition w-full"
+            >
+              <MessageSquarePlus size={18} />
+              Add Answer
+            </button>
+          ) : (
+            <AnswerForm onSubmit={handleAnswerSubmit} />
+          )}
         </div>
       </main>
     </div>

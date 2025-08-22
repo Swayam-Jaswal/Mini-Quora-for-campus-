@@ -9,7 +9,6 @@ export default function AnswerCard({ body, author, isAnonymous, date }) {
         </span>
         {date && <span className="text-xs text-gray-400">{date}</span>}
       </div>
-
       <p className="text-sm text-gray-300">{body}</p>
     </div>
   );
