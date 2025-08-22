@@ -55,6 +55,7 @@ export default function QnaPage() {
                 body={q.body}
                 tags={q.tags}
                 authorId={q.author?._id}
+                answersCount={q.answers?.length || 0} // ✅ Fix
               />
             ))}
           </div>

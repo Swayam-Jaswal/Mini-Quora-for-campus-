@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { MessageSquarePlus } from "lucide-react";``
+import { MessageSquarePlus } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { fetchQuestionById } from "../slices/questionSlice";
@@ -9,8 +9,9 @@ import { fetchAnswers, createAnswer, clearAnswers } from "../slices/answerSlice"
 
 import QuestionCard from "../components/QuestionCard";
 import AnswerCard from "../components/AnswerCard";
-import AnswerForm from "../components/AnswerForm";
+import AnswerModal from "../components/AnswerModal";
 import Navbar from "../../../components/layout/Navbar";
+import BackButton from "../../../components/common/BackButton";
 
 export default function QuestionDetailsPage() {
   const { id } = useParams();
@@ -23,11 +24,13 @@ export default function QuestionDetailsPage() {
     (state) => state.answers
   );
 
-  const [showAnswerForm, setShowAnswerForm] = useState(false);
+  const [answerModalOpen, setAnswerModalOpen] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchQuestionById(id));
-    dispatch(fetchAnswers(id));
+    if (id) {
+      dispatch(fetchQuestionById(id));
+      dispatch(fetchAnswers(id));
+    }
 
     return () => {
       dispatch(clearAnswers());
@@ -38,9 +41,8 @@ export default function QuestionDetailsPage() {
     try {
       await dispatch(createAnswer({ questionId: id, body: data.body })).unwrap();
       toast.success("Answer posted successfully");
-      setShowAnswerForm(false); 
+      setAnswerModalOpen(false);
     } catch (error) {
-      console.error("Answer post failed:", error);
       toast.error(error || "Something went wrong. Please try again.");
     }
   };
@@ -50,6 +52,8 @@ export default function QuestionDetailsPage() {
       <Navbar />
       <main className="flex-1 p-6 flex justify-center">
         <div className="w-full max-w-3xl bg-black/20 rounded-2xl p-6 shadow-lg">
+          <BackButton to="/qna" label="Back to Questions" />
+
           {questionLoading ? (
             <p className="text-gray-400">Loading question...</p>
           ) : question ? (
@@ -67,13 +71,12 @@ export default function QuestionDetailsPage() {
           <h3 className="text-lg font-semibold mt-6 mb-3">
             Answers ({answers?.length || 0})
           </h3>
-          {answersLoading && (
-            <p className="text-gray-400">Loading answers...</p>
-          )}
+          {answersLoading && <p className="text-gray-400">Loading answers...</p>}
           <div className="space-y-3">
             {answers?.map((a) => (
               <AnswerCard
                 key={a._id}
+                id={a._id} // ✅ pass id for edit/delete
                 body={a.body}
                 author={a.author}
                 isAnonymous={a.isAnonymous}
@@ -82,17 +85,22 @@ export default function QuestionDetailsPage() {
             ))}
           </div>
 
-          {!showAnswerForm ? (
-            <button
-              onClick={() => setShowAnswerForm(true)}
-              className="mt-6 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2 px-4 font-medium transition w-full"
-            >
-              <MessageSquarePlus size={18} />
-              Add Answer
-            </button>
-          ) : (
-            <AnswerForm onSubmit={handleAnswerSubmit} />
-          )}
+          {/* Add Answer Button */}
+          <button
+            onClick={() => setAnswerModalOpen(true)}
+            className="mt-6 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2 px-4 font-medium transition w-full"
+          >
+            <MessageSquarePlus size={18} />
+            Add Answer
+          </button>
+
+          {/* Answer Modal */}
+          <AnswerModal
+            open={answerModalOpen}
+            onClose={() => setAnswerModalOpen(false)}
+            onSubmit={handleAnswerSubmit}
+            mode="create" // ✅ mark as create mode
+          />
         </div>
       </main>
     </div>

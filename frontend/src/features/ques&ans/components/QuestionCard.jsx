@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { MoreVertical, MessageCircle } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import { deleteQuestion, updateQuestion } from "../slices/questionSlice";
 import { toast } from "react-toastify";
 import ConfirmModal from "./ConfirmModal";
@@ -13,7 +13,6 @@ export default function QuestionCard({
   body,
   tags,
   authorId,
-  answersCount = 0,
 }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -128,14 +127,7 @@ export default function QuestionCard({
           onClick={() => navigate(`/qna/${id}`)}
           className="text-blue-400 hover:underline"
         >
-          View all {answersCount} {answersCount === 1 ? "answer" : "answers"}
-        </button>
-
-        <button
-          onClick={() => navigate(`/qna/${id}#reply`)}
-          className="flex items-center gap-1 text-green-400 hover:underline"
-        >
-          <MessageCircle size={16} /> Reply
+          View all answers
         </button>
       </div>
 

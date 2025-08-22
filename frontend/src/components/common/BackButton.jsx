@@ -1,21 +1,17 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-export default function BackButton() {
+export default function BackButton({ to = -1, label = "Back" }) {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Don’t show back button on Home page
-  if (location.pathname === "/") {
-    return null;
-  }
 
   return (
     <button
-      onClick={() => navigate(-1)}
-      className="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/30 hover:bg-black/50 text-white transition"
+      onClick={() => navigate(to)}
+      className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-200 hover:text-white transition"
     >
-      <ArrowLeft size={18} /> Back
+      <ArrowLeft size={18} />
+      {label}
     </button>
   );
 }

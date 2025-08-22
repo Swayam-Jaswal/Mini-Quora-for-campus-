@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-export default function AnswerForm({ onSubmit }) {
-  const [formData, setFormData] = useState({ body: "" });
+export default function AnswerForm({ onSubmit, initialBody = "", mode = "create" }) {
+  const [formData, setFormData] = useState({ body: initialBody });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setFormData({ body: initialBody });
+  }, [initialBody]);
 
   const handleOnChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,8 +21,14 @@ export default function AnswerForm({ onSubmit }) {
     setLoading(true);
     try {
       await onSubmit({ body: formData.body.trim() });
-      setFormData({ body: "" });
-      toast.success("Answer posted successfully");
+      if (mode === "create") {
+        setFormData({ body: "" });
+      }
+      toast.success(
+        mode === "edit"
+          ? "Answer updated successfully"
+          : "Answer posted successfully"
+      );
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -27,29 +37,20 @@ export default function AnswerForm({ onSubmit }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-black/20 p-4 rounded-xl shadow mt-6"
-    >
-      <h2 className="text-lg font-semibold mb-3">Your Answer</h2>
-
+    <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
       <textarea
         name="body"
-        placeholder="Write your answer..."
-        rows={3}
         value={formData.body}
         onChange={handleOnChange}
-        className="w-full p-2 mb-3 rounded-lg bg-black/30 text-white placeholder-gray-400 outline-none"
+        placeholder="Write your answer..."
+        className="w-full p-3 rounded-lg bg-[#374151] text-white"
       />
-
       <button
         type="submit"
         disabled={loading}
-        className={`w-full ${
-          loading ? "bg-gray-600" : "bg-green-500 hover:bg-green-600"
-        } text-white rounded-lg py-2 font-medium transition`}
+        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
       >
-        {loading ? "Posting..." : "Post Answer"}
+        {loading ? "Saving..." : mode === "edit" ? "Update Answer" : "Post Answer"}
       </button>
     </form>
   );
