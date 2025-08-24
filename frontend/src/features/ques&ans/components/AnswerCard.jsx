@@ -11,8 +11,6 @@ export default function AnswerCard({ id, body, author, isAnonymous, date }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-
   const menuRef = useRef(null);
 
   const userId =
@@ -33,98 +31,75 @@ export default function AnswerCard({ id, body, author, isAnonymous, date }) {
     setMenuOpen(false);
   };
 
-  // 🔹 Close menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuOpen(false);
       }
     };
-
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menuOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="bg-[#1f2937] p-4 rounded-lg shadow-md mb-3">
+    <div className="flex-1 rounded-lg p-3 border-b border-gray-700 group transition">
       <div className="flex justify-between items-start">
-        {/* Left side: Username above body */}
         <div>
-          <p className="text-sm font-medium text-gray-200 mb-2">
+          <p className="text-sm font-medium text-white">
             {isAnonymous ? "Anonymous" : author?.name}
           </p>
-          <p className="text-gray-300 font-normal">{body}</p>
+          <p className="text-gray-200 mt-1">{body}</p>
         </div>
 
-        {/* Right side: Menu + Date */}
-        <div className="flex flex-col items-end" ref={menuRef}>
-          <div className="relative flex flex-col items-center">
-            {/* Three dots button */}
-            <button
-              className="p-1.5 mt-[-4px] mr-[-2px] rounded-full text-gray-400 hover:bg-[#374151] hover:text-white"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
-            >
-              ⋮
-            </button>
+        <div className="relative" ref={menuRef}>
+          <button
+            className="p-2 rounded-full text-gray-400 hover:bg-[#374151] hover:text-white opacity-0 group-hover:opacity-100 transition"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            title="See options"
+          >
+            ⋮
+          </button>
 
-            {/* Tooltip */}
-            {showTooltip && (
-              <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-xs px-2 py-1 rounded-lg shadow-lg whitespace-nowrap">
-                See options
-              </div>
-            )}
-
-            {/* Dropdown menu */}
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-[#374151] text-white rounded-lg shadow-lg z-10 animate-fadeIn">
-                {isAuthor ? (
-                  <>
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-[#4b5563]"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setEditOpen(true);
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-[#4b5563]"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setConfirmOpen(true);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </>
-                ) : (
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-32 bg-[#374151] text-white rounded-lg shadow-lg z-10">
+              {isAuthor ? (
+                <>
                   <button
                     className="block w-full text-left px-4 py-2 hover:bg-[#4b5563]"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setEditOpen(true);
+                    }}
                   >
-                    Report
+                    Edit
                   </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Date just below menu */}
-          <p className="text-xs text-gray-500 mt-1">{date}</p>
+                  <button
+                    className="block w-full text-left px-4 py-2 hover:bg-[#4b5563]"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setConfirmOpen(true);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-[#4b5563]"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Report
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Edit Answer Modal */}
+      <div className="flex justify-start mt-2">
+        <p className="text-xs text-gray-400">{date}</p>
+      </div>
+
       <AnswerModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -133,7 +108,6 @@ export default function AnswerCard({ id, body, author, isAnonymous, date }) {
         mode="edit"
       />
 
-      {/* Confirm Delete Modal */}
       <ConfirmModal
         open={confirmOpen}
         title="Delete Answer"

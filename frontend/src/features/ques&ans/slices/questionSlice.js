@@ -8,7 +8,7 @@ export const fetchQuestions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${BASE_URL}/api/questions/get-all-questions`);
-      return res.data.questions; // ✅ each has answersCount now
+      return res.data.questions;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch questions");
     }
@@ -20,7 +20,7 @@ export const fetchQuestionById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${BASE_URL}/api/questions/get-question/${id}`);
-      return res.data.question; // ✅ includes answersCount
+      return res.data.question;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch question");
     }
@@ -66,7 +66,6 @@ export const createQuestion = createAsyncThunk(
         data,
         { withCredentials: true }
       );
-      // ✅ add answersCount = 0 when new question is created
       return { ...res.data.question, answersCount: 0 };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to create question");
@@ -86,6 +85,29 @@ const questionSlice = createSlice({
     clearCurrent: (state) => {
       state.current = null;
     },
+    socketQuestionCreated: (state, action) => {
+      const q = action.payload;
+      if (!state.list.find((x) => x._id === q._id)) state.list.unshift(q);
+    },
+    socketQuestionUpdated: (state, action) => {
+      const q = action.payload;
+      state.list = state.list.map((x) => (x._id === q._id ? q : x));
+      if (state.current && state.current._id === q._id) state.current = q;
+    },
+    socketQuestionDeleted: (state, action) => {
+      const id = action.payload;
+      state.list = state.list.filter((x) => x._id !== id);
+      if (state.current && state.current._id === id) state.current = null;
+    },
+    socketIncrementAnswersCount: (state, action) => {
+      const { questionId, delta } = action.payload;
+      state.list = state.list.map((q) =>
+        q._id === questionId ? { ...q, answersCount: (q.answersCount || 0) + delta } : q
+      );
+      if (state.current && state.current._id === questionId) {
+        state.current = { ...state.current, answersCount: (state.current.answersCount || 0) + delta };
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -101,7 +123,6 @@ const questionSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(fetchQuestionById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -114,39 +135,36 @@ const questionSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(createQuestion.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createQuestion.fulfilled, (state, action) => {
         state.loading = false;
-        state.list.unshift(action.payload); // ✅ starts with answersCount: 0
+        state.list.unshift(action.payload);
       })
       .addCase(createQuestion.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(deleteQuestion.fulfilled, (state, action) => {
         state.loading = false;
         state.list = state.list.filter((q) => q._id !== action.payload);
-        if (state.current && state.current._id === action.payload) {
-          state.current = null;
-        }
+        if (state.current && state.current._id === action.payload) state.current = null;
       })
-
       .addCase(updateQuestion.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = state.list.map((q) =>
-          q._id === action.payload._id ? action.payload : q
-        );
-        if (state.current && state.current._id === action.payload._id) {
-          state.current = action.payload;
-        }
+        state.list = state.list.map((q) => (q._id === action.payload._id ? action.payload : q));
+        if (state.current && state.current._id === action.payload._id) state.current = action.payload;
       });
   },
 });
 
-export const { clearCurrent } = questionSlice.actions;
+export const {
+  clearCurrent,
+  socketQuestionCreated,
+  socketQuestionUpdated,
+  socketQuestionDeleted,
+  socketIncrementAnswersCount,
+} = questionSlice.actions;
 export default questionSlice.reducer;

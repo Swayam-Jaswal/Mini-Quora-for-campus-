@@ -72,6 +72,18 @@ const answerSlice = createSlice({
     clearAnswers: (state) => {
       state.list = [];
     },
+    socketAnswerCreated: (state, action) => {
+      const a = action.payload;
+      if (!state.list.find((x) => x._id === a._id)) state.list.unshift(a);
+    },
+    socketAnswerUpdated: (state, action) => {
+      const a = action.payload;
+      state.list = state.list.map((x) => (x._id === a._id ? a : x));
+    },
+    socketAnswerDeleted: (state, action) => {
+      const id = action.payload;
+      state.list = state.list.filter((x) => x._id !== id);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -87,12 +99,12 @@ const answerSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(createAnswer.fulfilled, (state, action) => {
-        state.list.unshift(action.payload);
+        if (!state.list.find((x) => x._id === action.payload._id)) {
+          state.list.unshift(action.payload);
+        }
       })
       .addCase(updateAnswer.fulfilled, (state, action) => {
-        state.list = state.list.map((a) =>
-          a._id === action.payload._id ? action.payload : a
-        );
+        state.list = state.list.map((a) => (a._id === action.payload._id ? action.payload : a));
       })
       .addCase(deleteAnswer.fulfilled, (state, action) => {
         state.list = state.list.filter((a) => a._id !== action.payload);
@@ -100,5 +112,6 @@ const answerSlice = createSlice({
   },
 });
 
-export const { clearAnswers } = answerSlice.actions;
+export const { clearAnswers, socketAnswerCreated, socketAnswerUpdated, socketAnswerDeleted } =
+  answerSlice.actions;
 export default answerSlice.reducer;

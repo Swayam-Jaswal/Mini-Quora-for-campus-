@@ -1,39 +1,58 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus, CornerDownRight } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { fetchQuestionById } from "../slices/questionSlice";
-import { fetchAnswers, createAnswer, clearAnswers } from "../slices/answerSlice";
+import { fetchAnswers, createAnswer, clearAnswers, socketAnswerCreated, socketAnswerUpdated, socketAnswerDeleted } from "../slices/answerSlice";
+import { socketIncrementAnswersCount } from "../slices/questionSlice";
 
 import QuestionCard from "../components/QuestionCard";
 import AnswerCard from "../components/AnswerCard";
-import AnswerModal from "../components/AnswerModal";
+import AnswerForm from "../components/AnswerForm";
 import Navbar from "../../../components/layout/Navbar";
 import BackButton from "../../../components/common/BackButton";
+import socket from "../../../app/socket";
 
 export default function QuestionDetailsPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const { current: question, loading: questionLoading } = useSelector(
-    (state) => state.questions
-  );
-  const { list: answers, loading: answersLoading } = useSelector(
-    (state) => state.answers
-  );
-
-  const [answerModalOpen, setAnswerModalOpen] = useState(false);
+  const { current: question, loading: questionLoading } = useSelector((state) => state.questions);
+  const { list: answers, loading: answersLoading } = useSelector((state) => state.answers);
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchQuestionById(id));
-      dispatch(fetchAnswers(id));
-    }
-
+    dispatch(fetchQuestionById(id));
+    dispatch(fetchAnswers(id));
     return () => {
       dispatch(clearAnswers());
+    };
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    const onCreated = ({ questionId, answer }) => {
+      if (questionId === id) {
+        dispatch(socketAnswerCreated(answer));
+        dispatch(socketIncrementAnswersCount({ questionId, delta: 1 }));
+      }
+    };
+    const onUpdated = ({ questionId, answer }) => {
+      if (questionId === id) dispatch(socketAnswerUpdated(answer));
+    };
+    const onDeleted = ({ questionId, answerId }) => {
+      if (questionId === id) {
+        dispatch(socketAnswerDeleted(answerId));
+        dispatch(socketIncrementAnswersCount({ questionId, delta: -1 }));
+      }
+    };
+    socket.on("answerCreated", onCreated);
+    socket.on("answerUpdated", onUpdated);
+    socket.on("answerDeleted", onDeleted);
+    return () => {
+      socket.off("answerCreated", onCreated);
+      socket.off("answerUpdated", onUpdated);
+      socket.off("answerDeleted", onDeleted);
     };
   }, [dispatch, id]);
 
@@ -41,7 +60,6 @@ export default function QuestionDetailsPage() {
     try {
       await dispatch(createAnswer({ questionId: id, body: data.body })).unwrap();
       toast.success("Answer posted successfully");
-      setAnswerModalOpen(false);
     } catch (error) {
       toast.error(error || "Something went wrong. Please try again.");
     }
@@ -51,9 +69,8 @@ export default function QuestionDetailsPage() {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#29323C] to-[#485563] text-white">
       <Navbar />
       <main className="flex-1 p-6 flex justify-center">
-        <div className="w-full max-w-3xl bg-black/20 rounded-2xl p-6 shadow-lg">
+        <div className="w-full max-w-3xl bg-black/20 rounded-2xl p-6 shadow-lg flex flex-col">
           <BackButton to="/qna" label="Back to Questions" />
-
           {questionLoading ? (
             <p className="text-gray-400">Loading question...</p>
           ) : question ? (
@@ -63,44 +80,39 @@ export default function QuestionDetailsPage() {
               body={question.body}
               tags={question.tags}
               authorId={question.author?._id}
+              authorName={question.author?.name}
+              createdAt={question.createdAt}
+              showFooter={false}
             />
           ) : (
             <p className="text-red-400">Question not found</p>
           )}
 
-          <h3 className="text-lg font-semibold mt-6 mb-3">
-            Answers ({answers?.length || 0})
-          </h3>
-          {answersLoading && <p className="text-gray-400">Loading answers...</p>}
-          <div className="space-y-3">
-            {answers?.map((a) => (
-              <AnswerCard
-                key={a._id}
-                id={a._id} // ✅ pass id for edit/delete
-                body={a.body}
-                author={a.author}
-                isAnonymous={a.isAnonymous}
-                date={new Date(a.createdAt).toLocaleDateString()}
-              />
-            ))}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <MessageSquarePlus size={18} />
+              Write your answer
+            </h3>
+            <AnswerForm onSubmit={handleAnswerSubmit} />
           </div>
 
-          {/* Add Answer Button */}
-          <button
-            onClick={() => setAnswerModalOpen(true)}
-            className="mt-6 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2 px-4 font-medium transition w-full"
-          >
-            <MessageSquarePlus size={18} />
-            Add Answer
-          </button>
-
-          {/* Answer Modal */}
-          <AnswerModal
-            open={answerModalOpen}
-            onClose={() => setAnswerModalOpen(false)}
-            onSubmit={handleAnswerSubmit}
-            mode="create" // ✅ mark as create mode
-          />
+          {answersLoading && <p className="text-gray-400 mt-4">Loading answers...</p>}
+          <div className="space-y-3 flex-1 mt-6">
+            {answers?.map((a) => (
+              <div key={a._id} className="flex items-start gap-2">
+                <CornerDownRight className="text-gray-400 mt-1 w-5 h-5" />
+                <div className="flex-1">
+                  <AnswerCard
+                    id={a._id}
+                    body={a.body}
+                    author={a.author}
+                    isAnonymous={a.isAnonymous}
+                    date={new Date(a.createdAt).toLocaleDateString()}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
