@@ -3,14 +3,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteAnswer, updateAnswer } from "../slices/answerSlice";
 import AnswerModal from "./AnswerModal";
 import ConfirmModal from "../components/ConfirmModal";
+import TimeAgo from "../../../components/common/TimeAgo"; // ✅ import your TimeAgo component
 
-export default function AnswerCard({ id, body, author, isAnonymous, date }) {
+export default function AnswerCard({
+  id,
+  body,
+  author,
+  isAnonymous,
+  attachments = [],
+  date,
+}) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   const menuRef = useRef(null);
 
   const userId =
@@ -49,6 +58,43 @@ export default function AnswerCard({ id, body, author, isAnonymous, date }) {
             {isAnonymous ? "Anonymous" : author?.name}
           </p>
           <p className="text-gray-200 mt-1">{body}</p>
+
+          {/* Attachments */}
+          {attachments?.length > 0 && (
+            <div className="mt-3 space-y-3">
+              {/* Images in horizontal grid */}
+              <div className="flex flex-wrap gap-2">
+                {attachments
+                  .filter((att) => att.type === "image")
+                  .map((att, i) => (
+                    <img
+                      key={i}
+                      src={att.url}
+                      alt="attachment"
+                      className="w-24 h-24 object-cover rounded-md border border-gray-600 cursor-pointer"
+                      onClick={() => setPreviewImage(att.url)}
+                    />
+                  ))}
+              </div>
+
+              {/* Documents */}
+              <div className="flex flex-col gap-2">
+                {attachments
+                  .filter((att) => att.type === "document")
+                  .map((att, i) => (
+                    <a
+                      key={i}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-blue-400 underline text-sm"
+                    >
+                      📄 Document {i + 1}
+                    </a>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative" ref={menuRef}>
@@ -96,9 +142,26 @@ export default function AnswerCard({ id, body, author, isAnonymous, date }) {
         </div>
       </div>
 
+      {/* Date with TimeAgo */}
       <div className="flex justify-start mt-2">
-        <p className="text-xs text-gray-400">{date}</p>
+        <p className="text-xs text-gray-400">
+          <TimeAgo date={date} />
+        </p>
       </div>
+
+      {/* Full image modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          onClick={() => setPreviewImage(null)}
+        >
+          <img
+            src={previewImage}
+            alt="Full Preview"
+            className="max-w-full max-h-full rounded-lg shadow-lg"
+          />
+        </div>
+      )}
 
       <AnswerModal
         open={editOpen}

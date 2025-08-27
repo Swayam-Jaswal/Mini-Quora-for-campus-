@@ -6,19 +6,7 @@ import { deleteQuestion, updateQuestion } from "../slices/questionSlice";
 import { toast } from "react-toastify";
 import ConfirmModal from "./ConfirmModal";
 import EditModal from "./EditModal";
-
-const formatTimeAgo = (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const seconds = Math.floor((now - date) / 1000);
-
-  if (seconds < 60) return `${seconds}s ago`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-
-  return date.toLocaleDateString();
-};
+import TimeAgo from "../../../components/common/TimeAgo";
 
 export default function QuestionCard({
   id,
@@ -29,7 +17,7 @@ export default function QuestionCard({
   answersCount = 0,
   createdAt,
   authorName,
-  showFooter = true,   // ✅ new prop (default true)
+  showFooter = true,
 }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -75,7 +63,7 @@ export default function QuestionCard({
               {isAuthor ? "You" : authorName || "Anonymous User"}
             </h4>
             <p className="text-xs text-gray-400">
-              Asked {createdAt ? formatTimeAgo(createdAt) : "just now"}
+              Asked <TimeAgo date={createdAt} />
             </p>
           </div>
         </div>
@@ -146,7 +134,6 @@ export default function QuestionCard({
         </div>
       )}
 
-      {/* ✅ Show footer only if showFooter is true */}
       {showFooter && (
         <div className="flex justify-between items-center text-sm border-t border-gray-700 pt-3">
           <button

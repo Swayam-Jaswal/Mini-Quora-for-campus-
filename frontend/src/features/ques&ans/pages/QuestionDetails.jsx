@@ -5,7 +5,14 @@ import { MessageSquarePlus, CornerDownRight } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { fetchQuestionById } from "../slices/questionSlice";
-import { fetchAnswers, createAnswer, clearAnswers, socketAnswerCreated, socketAnswerUpdated, socketAnswerDeleted } from "../slices/answerSlice";
+import {
+  fetchAnswers,
+  createAnswer,
+  clearAnswers,
+  socketAnswerCreated,
+  socketAnswerUpdated,
+  socketAnswerDeleted,
+} from "../slices/answerSlice";
 import { socketIncrementAnswersCount } from "../slices/questionSlice";
 
 import QuestionCard from "../components/QuestionCard";
@@ -58,7 +65,13 @@ export default function QuestionDetailsPage() {
 
   const handleAnswerSubmit = async (data) => {
     try {
-      await dispatch(createAnswer({ questionId: id, body: data.body })).unwrap();
+      await dispatch(
+        createAnswer({
+          questionId: id,
+          body: data.body,
+          attachments: data.attachments,
+        })
+      ).unwrap();
       toast.success("Answer posted successfully");
     } catch (error) {
       toast.error(error || "Something went wrong. Please try again.");
@@ -107,7 +120,8 @@ export default function QuestionDetailsPage() {
                     body={a.body}
                     author={a.author}
                     isAnonymous={a.isAnonymous}
-                    date={new Date(a.createdAt).toLocaleDateString()}
+                    attachments={a.attachments}
+                    date={a.createdAt}
                   />
                 </div>
               </div>

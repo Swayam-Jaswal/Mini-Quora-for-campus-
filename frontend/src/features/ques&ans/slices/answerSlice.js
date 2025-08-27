@@ -17,11 +17,11 @@ export const fetchAnswers = createAsyncThunk(
 
 export const createAnswer = createAsyncThunk(
   "answers/create",
-  async ({ questionId, body }, { rejectWithValue }) => {
+  async ({ questionId, body, attachments = [], isAnonymous = false }, { rejectWithValue }) => {
     try {
       const res = await axios.post(
         `${BASE_URL}/api/answers/create-answer/${questionId}`,
-        { body },
+        { body, attachments, isAnonymous },
         { withCredentials: true }
       );
       return res.data.answer;
@@ -33,11 +33,11 @@ export const createAnswer = createAsyncThunk(
 
 export const updateAnswer = createAsyncThunk(
   "answers/update",
-  async ({ id, body }, { rejectWithValue }) => {
+  async ({ id, body, attachments }, { rejectWithValue }) => {
     try {
       const res = await axios.put(
         `${BASE_URL}/api/answers/update-answer/${id}`,
-        { body },
+        { body, attachments },
         { withCredentials: true }
       );
       return res.data.answer;
@@ -84,11 +84,16 @@ const answerSlice = createSlice({
       const id = action.payload;
       state.list = state.list.filter((x) => x._id !== id);
     },
+    socketAnswersClearedForQuestion: (state, action) => {
+      const qid = action.payload;
+      state.list = state.list.filter((a) => String(a.question) !== String(qid));
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAnswers.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchAnswers.fulfilled, (state, action) => {
         state.loading = false;
@@ -99,19 +104,30 @@ const answerSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(createAnswer.fulfilled, (state, action) => {
-        if (!state.list.find((x) => x._id === action.payload._id)) {
+        state.loading = false;
+        if (!state.list.find((a) => a._id === action.payload._id)) {
           state.list.unshift(action.payload);
         }
       })
-      .addCase(updateAnswer.fulfilled, (state, action) => {
-        state.list = state.list.map((a) => (a._id === action.payload._id ? action.payload : a));
-      })
       .addCase(deleteAnswer.fulfilled, (state, action) => {
+        state.loading = false;
         state.list = state.list.filter((a) => a._id !== action.payload);
+      })
+      .addCase(updateAnswer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = state.list.map((a) =>
+          a._id === action.payload._id ? action.payload : a
+        );
       });
   },
 });
 
-export const { clearAnswers, socketAnswerCreated, socketAnswerUpdated, socketAnswerDeleted } =
-  answerSlice.actions;
+export const {
+  clearAnswers,
+  socketAnswerCreated,
+  socketAnswerUpdated,
+  socketAnswerDeleted,
+  socketAnswersClearedForQuestion,
+} = answerSlice.actions;
+
 export default answerSlice.reducer;

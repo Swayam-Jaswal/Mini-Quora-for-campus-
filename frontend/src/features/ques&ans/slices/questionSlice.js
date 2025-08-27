@@ -105,7 +105,10 @@ const questionSlice = createSlice({
         q._id === questionId ? { ...q, answersCount: (q.answersCount || 0) + delta } : q
       );
       if (state.current && state.current._id === questionId) {
-        state.current = { ...state.current, answersCount: (state.current.answersCount || 0) + delta };
+        state.current = {
+          ...state.current,
+          answersCount: (state.current.answersCount || 0) + delta,
+        };
       }
     },
   },
@@ -141,7 +144,10 @@ const questionSlice = createSlice({
       })
       .addCase(createQuestion.fulfilled, (state, action) => {
         state.loading = false;
-        state.list.unshift(action.payload);
+        // ✅ Prevent duplicates (socket + local add)
+        if (!state.list.find((q) => q._id === action.payload._id)) {
+          state.list.unshift(action.payload);
+        }
       })
       .addCase(createQuestion.rejected, (state, action) => {
         state.loading = false;
@@ -155,7 +161,9 @@ const questionSlice = createSlice({
       .addCase(updateQuestion.fulfilled, (state, action) => {
         state.loading = false;
         state.list = state.list.map((q) => (q._id === action.payload._id ? action.payload : q));
-        if (state.current && state.current._id === action.payload._id) state.current = action.payload;
+        if (state.current && state.current._id === action.payload._id) {
+          state.current = action.payload;
+        }
       });
   },
 });
@@ -167,4 +175,5 @@ export const {
   socketQuestionDeleted,
   socketIncrementAnswersCount,
 } = questionSlice.actions;
+
 export default questionSlice.reducer;

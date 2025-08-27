@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/admin.routes');
 const questionRoutes = require('./routes/question.routes');
 const answerRoutes = require('./routes/answer.routes');
 const mongoDB = require('./config/db');
+const uploadRoutes = require("./routes/upload.routes");
 
 mongoDB();
 
@@ -43,6 +44,7 @@ app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/answers', answerRoutes);
+app.use("/api/upload", uploadRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
