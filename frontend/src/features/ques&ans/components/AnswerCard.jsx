@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteAnswer, updateAnswer } from "../slices/answerSlice";
 import AnswerModal from "./AnswerModal";
 import ConfirmModal from "../components/ConfirmModal";
-import TimeAgo from "../../../components/common/TimeAgo"; // ✅ import your TimeAgo component
+import TimeAgo from "../../../components/common/TimeAgo";
 
 export default function AnswerCard({
   id,
@@ -89,7 +89,7 @@ export default function AnswerCard({
                       rel="noopener noreferrer"
                       className="block text-blue-400 underline text-sm"
                     >
-                      📄 Document {i + 1}
+                      Document {i + 1}
                     </a>
                   ))}
               </div>
@@ -142,14 +142,12 @@ export default function AnswerCard({
         </div>
       </div>
 
-      {/* Date with TimeAgo */}
       <div className="flex justify-start mt-2">
         <p className="text-xs text-gray-400">
           <TimeAgo date={date} />
         </p>
       </div>
 
-      {/* Full image modal */}
       {previewImage && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"

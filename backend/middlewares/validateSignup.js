@@ -35,6 +35,9 @@ const validateSignup = [
 
   body('adminCode')
     .optional()
+    .isString(),
+  body('moderatorCode')
+    .optional()
     .isString()
 ];
 

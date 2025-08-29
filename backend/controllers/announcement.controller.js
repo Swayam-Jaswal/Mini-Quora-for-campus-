@@ -54,10 +54,7 @@ const deleteAnnouncement = async (req, res) => {
       return res.status(404).json({ success: false, message: "Announcement not found" });
     }
 
-    if (
-      req.user.role !== "admin" &&
-      !(req.user.role === "moderator" && announcement.author.equals(req.user._id))
-    ) {
+    if (!["admin", "moderator"].includes(req.user.role)) {
       return res.status(403).json({ success: false, message: "Unauthorized to delete this announcement" });
     }
 

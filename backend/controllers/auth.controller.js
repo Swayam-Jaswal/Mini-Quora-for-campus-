@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const AdminCode = require('../models/adminCode');
+const ModeratorCode = require('../models/moderatorCode');
 const {emailRegex,passwordRegex} = require('../utils/validator');
 const {sendVerificationEmail} = require("../utils/sendEmail");
 const jwt = require('jsonwebtoken');
@@ -10,8 +11,13 @@ require('dotenv').config();
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, adminCode } = req.body;
+    const { name, email, password, adminCode, moderatorCode } = req.body;
     const emailCheck = await User.findOne({ email });
+    
+    if (adminCode && moderatorCode) {
+      return res.status(400).json({ message: "Provide only one code: either admin or moderator" });
+    }
+
     if (emailCheck) {
       return res.status(409).json({ message: "email already exists" });
     }
@@ -26,6 +32,15 @@ const signup = async (req, res) => {
       }
       role = "admin";
       await AdminCode.deleteOne({ _id: foundCode._id });
+    }
+
+    if (moderatorCode) {
+      const foundCode = await ModeratorCode.findOne({ code: moderatorCode });
+      if (!foundCode || foundCode.expiresAt < new Date()) {
+        return res.status(400).json({ message: "Invalid or expired moderator token" });
+      }
+      role = "moderator";
+      await ModeratorCode.deleteOne({ _id: foundCode._id });
     }
 
     const newUser = new User({ name, email, password: hashedPassword, role, isVerified: false });
@@ -121,10 +136,9 @@ const login = async (req, res) => {
 
     const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    // ✅ Proper cookie setup for localhost
     res.cookie("access_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true only with https
+      secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "Strict" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

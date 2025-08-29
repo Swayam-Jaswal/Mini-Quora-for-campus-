@@ -13,6 +13,8 @@ const questionRoutes = require('./routes/question.routes');
 const answerRoutes = require('./routes/answer.routes');
 const mongoDB = require('./config/db');
 const uploadRoutes = require("./routes/upload.routes");
+const announcementRoutes = require("./routes/announcement.routes");
+const requestRoutes = require("./routes/request.routes");
 
 mongoDB();
 
@@ -29,12 +31,22 @@ const io = new Server(server, {
   }
 });
 
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-}));
+const allowedOrigins = (process.env.FRONTEND_BASE_URL || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -45,6 +57,8 @@ app.use('/admin', adminRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/answers', answerRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/announcement",announcementRoutes);
+app.use("/api/requests", requestRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

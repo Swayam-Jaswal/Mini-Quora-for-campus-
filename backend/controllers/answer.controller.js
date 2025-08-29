@@ -54,7 +54,8 @@ const updateAnswer = async (req, res) => {
     const answer = await Answer.findById(id);
     if (!answer) return res.status(404).json({ message: "Answer not found" });
 
-    if (answer.author.toString() !== req.user.id) {
+    if (answer.author.toString() !== req.user.id &&
+        !["admin", "moderator"].includes(req.user.role)) {
       return res.status(403).json({ message: "You cannot edit this answer" });
     }
 
@@ -80,7 +81,8 @@ const deleteAnswer = async (req, res) => {
     const answer = await Answer.findById(id);
     if (!answer) return res.status(404).json({ message: "Answer not found" });
 
-    if (answer.author.toString() !== req.user.id) {
+    if (answer.author.toString() !== req.user.id &&
+        !["admin", "moderator"].includes(req.user.role)) {
       return res.status(403).json({ message: "You cannot delete this answer" });
     }
 

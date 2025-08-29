@@ -1,8 +1,10 @@
+// src/components/common/UploadInput.jsx
 import React, { useState } from "react";
 import axios from "axios";
 
 export default function UploadInput({ onUpload }) {
   const [uploading, setUploading] = useState(false);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -13,14 +15,18 @@ export default function UploadInput({ onUpload }) {
 
     setUploading(true);
     try {
-      const res = await axios.post("http://localhost:3000/api/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await axios.post(`${BASE_URL}/api/upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
         withCredentials: true,
       });
-      onUpload(res.data.url);
+
+      if (res?.data?.url) {
+        onUpload?.(res.data);
+      }
     } catch (err) {
-      console.error(err);
-      alert("Upload failed");
+      console.error("Upload failed:", err);
     } finally {
       setUploading(false);
     }
