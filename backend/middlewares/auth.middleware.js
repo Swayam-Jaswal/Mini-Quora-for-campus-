@@ -1,7 +1,5 @@
-// middlewares/auth.middleware.js
 const jwt = require("jsonwebtoken");
 
-// ✅ Verify Token
 const verifyToken = (req, res, next) => {
   try {
     let token = null;
@@ -25,7 +23,6 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// ✅ Check for single role
 const checkRole = (role) => (req, res, next) => {
   if (!req.user?.role) {
     return res.status(401).json({ message: "Not authenticated" });
@@ -36,7 +33,6 @@ const checkRole = (role) => (req, res, next) => {
   next();
 };
 
-// ✅ Allow multiple roles
 const allowRoles = (...roles) => (req, res, next) => {
   if (!req.user?.role) {
     return res.status(401).json({ message: "Not authenticated" });

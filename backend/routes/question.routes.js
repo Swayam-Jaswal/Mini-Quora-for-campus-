@@ -4,7 +4,7 @@ const { createQuestion, getAllQuestions, getQuestionById, updateQuestion, delete
 const { verifyToken } = require('../middlewares/auth.middleware');
 
 router.post('/create-question', verifyToken, createQuestion);
-router.get('/get-questions', getAllQuestions);
+router.get('/get-all-questions', getAllQuestions);
 router.get('/get-question/:id', getQuestionById);
 router.put('/update-question/:id', verifyToken, updateQuestion);
 router.delete('/delete-question/:id', verifyToken, deleteQuestion);

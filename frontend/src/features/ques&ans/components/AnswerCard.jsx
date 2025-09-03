@@ -4,6 +4,9 @@ import { deleteAnswer, updateAnswer } from "../slices/answerSlice";
 import AnswerModal from "./AnswerModal";
 import ConfirmModal from "../components/ConfirmModal";
 import TimeAgo from "../../../components/common/TimeAgo";
+import { toast } from "react-toastify";
+import Loader from "../../../components/common/Loader";
+import { Download } from "lucide-react";
 
 export default function AnswerCard({
   id,
@@ -19,6 +22,7 @@ export default function AnswerCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const menuRef = useRef(null);
 
@@ -35,9 +39,17 @@ export default function AnswerCard({
   };
 
   const handleDelete = async () => {
-    await dispatch(deleteAnswer(id));
-    setConfirmOpen(false);
-    setMenuOpen(false);
+    setDeleting(true);
+    try {
+      await dispatch(deleteAnswer(id)).unwrap();
+      toast.success("Answer deleted successfully");
+    } catch {
+      toast.error("Failed to delete answer");
+    } finally {
+      setDeleting(false);
+      setConfirmOpen(false);
+      setMenuOpen(false);
+    }
   };
 
   useEffect(() => {
@@ -50,6 +62,25 @@ export default function AnswerCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ✅ File placeholder icons
+  const getFileIcon = (url = "") => {
+    const lower = url.toLowerCase();
+    if (lower.endsWith(".pdf")) return "/icons/pdf.png";
+    if (lower.endsWith(".doc") || lower.endsWith(".docx"))
+      return "/icons/word.png";
+    if (lower.endsWith(".ppt") || lower.endsWith(".pptx"))
+      return "/icons/ppt.png";
+    return "/icons/document.png";
+  };
+
+  // ✅ Force download link for Cloudinary
+  const getDownloadUrl = (url = "") => {
+    if (!url) return url;
+    return url.includes("/upload/")
+      ? url.replace("/upload/", "/upload/fl_attachment/")
+      : url;
+  };
+
   return (
     <div className="flex-1 rounded-lg p-3 border-b border-gray-700 group transition">
       <div className="flex justify-between items-start">
@@ -59,40 +90,57 @@ export default function AnswerCard({
           </p>
           <p className="text-gray-200 mt-1">{body}</p>
 
-          {/* Attachments */}
           {attachments?.length > 0 && (
-            <div className="mt-3 space-y-3">
-              {/* Images in horizontal grid */}
-              <div className="flex flex-wrap gap-2">
-                {attachments
-                  .filter((att) => att.type === "image")
-                  .map((att, i) => (
+            <div className="mt-3 flex flex-wrap gap-3">
+              {attachments.map((att, i) =>
+                att.type === "image" ? (
+                  <div
+                    key={i}
+                    className="w-24 h-24 relative rounded-md border border-gray-600 overflow-hidden"
+                  >
                     <img
-                      key={i}
                       src={att.url}
                       alt="attachment"
-                      className="w-24 h-24 object-cover rounded-md border border-gray-600 cursor-pointer"
+                      className="w-full h-full object-cover cursor-pointer"
                       onClick={() => setPreviewImage(att.url)}
                     />
-                  ))}
-              </div>
 
-              {/* Documents */}
-              <div className="flex flex-col gap-2">
-                {attachments
-                  .filter((att) => att.type === "document")
-                  .map((att, i) => (
+                    {/* ✅ Download button for images */}
                     <a
-                      key={i}
-                      href={att.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-blue-400 underline text-sm"
+                      href={getDownloadUrl(att.url)}
+                      download
+                      className="absolute bottom-1 right-1 bg-gray-700 hover:bg-gray-600 text-white p-1 rounded-full"
+                      title="Download image"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Document {i + 1}
+                      <Download size={14} />
                     </a>
-                  ))}
-              </div>
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    className="w-24 h-24 relative rounded-md border border-gray-600 overflow-hidden bg-slate-800 hover:bg-slate-700 transition"
+                  >
+                    <a href={att.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={getFileIcon(att.url)}
+                        alt="document preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </a>
+
+                    {/* ✅ Download button for docs */}
+                    <a
+                      href={getDownloadUrl(att.url)}
+                      download
+                      className="absolute bottom-1 right-1 bg-gray-700 hover:bg-gray-600 text-white p-1 rounded-full"
+                      title="Download file"
+                    >
+                      <Download size={14} />
+                    </a>
+                  </div>
+                )
+              )}
             </div>
           )}
         </div>
@@ -166,6 +214,7 @@ export default function AnswerCard({
         onClose={() => setEditOpen(false)}
         onSubmit={handleUpdate}
         initialBody={body}
+        initialAttachments={attachments}
         mode="edit"
       />
 
@@ -175,7 +224,14 @@ export default function AnswerCard({
         message="Are you sure you want to delete this answer? This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}
-      />
+        loading={deleting}
+      >
+        {deleting && (
+          <div className="mt-3 flex justify-center">
+            <Loader size="sm" text="Deleting..." />
+          </div>
+        )}
+      </ConfirmModal>
     </div>
   );
 }

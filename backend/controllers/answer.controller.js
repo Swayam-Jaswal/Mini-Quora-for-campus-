@@ -1,5 +1,7 @@
+// controllers/answer.controller.js
 const Answer = require("../models/answer");
 const Question = require("../models/question");
+const { v2: cloudinary } = require("cloudinary");
 
 const createAnswer = async (req, res) => {
   try {
@@ -81,9 +83,28 @@ const deleteAnswer = async (req, res) => {
     const answer = await Answer.findById(id);
     if (!answer) return res.status(404).json({ message: "Answer not found" });
 
-    if (answer.author.toString() !== req.user.id &&
-        !["admin", "moderator"].includes(req.user.role)) {
+    // 🔒 Only author or admin/moderator can delete
+    if (
+      answer.author.toString() !== req.user.id &&
+      !["admin", "moderator"].includes(req.user.role)
+    ) {
       return res.status(403).json({ message: "You cannot delete this answer" });
+    }
+
+    // ✅ Delete all attachments from Cloudinary
+    if (Array.isArray(answer.attachments) && answer.attachments.length > 0) {
+      for (const att of answer.attachments) {
+        if (att.public_id) {
+          try {
+            let resourceType = att.type === "document" ? "raw" : "image";
+            await cloudinary.uploader.destroy(att.public_id, {
+              resource_type: resourceType,
+            });
+          } catch (err) {
+            console.error("Cloudinary delete failed:", err.message);
+          }
+        }
+      }
     }
 
     const qid = answer.question.toString();
@@ -95,7 +116,9 @@ const deleteAnswer = async (req, res) => {
 
     return res.status(200).json({ message: "Answer deleted successfully" });
   } catch (error) {
-    return res.status(500).json({ message: "Couldn't delete answer", error: error?.message || error });
+    return res
+      .status(500)
+      .json({ message: "Couldn't delete answer", error: error?.message || error });
   }
 };
 

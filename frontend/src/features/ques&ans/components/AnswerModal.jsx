@@ -2,7 +2,14 @@ import React from "react";
 import { X } from "lucide-react";
 import AnswerForm from "./AnswerForm";
 
-export default function AnswerModal({ open, onClose, onSubmit, initialBody = "", mode = "create" }) {
+export default function AnswerModal({
+  open,
+  onClose,
+  onSubmit,
+  initialBody = "",
+  initialAttachments = [],
+  mode = "create",
+}) {
   if (!open) return null;
 
   return (
@@ -15,7 +22,12 @@ export default function AnswerModal({ open, onClose, onSubmit, initialBody = "",
           <X size={20} />
         </button>
 
-        <AnswerForm onSubmit={onSubmit} initialBody={initialBody} mode={mode} />
+        <AnswerForm
+          onSubmit={onSubmit}
+          initialBody={initialBody}
+          initialAttachments={initialAttachments}
+          mode={mode}
+        />
       </div>
     </div>
   );

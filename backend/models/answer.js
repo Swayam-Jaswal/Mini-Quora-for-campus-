@@ -19,7 +19,8 @@ const answerSchema = new mongoose.Schema({
   attachments: [
     {
       url: { type: String },
-      type: { type: String, enum: ["image", "document"], default: "document" }
+      type: { type: String, enum: ["image", "document"], default: "document" },
+      public_id: String
     },
   ],
   isAnonymous: { type: Boolean, default: false },
