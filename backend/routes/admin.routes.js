@@ -1,5 +1,11 @@
 const express = require('express');
-const { generateAdminCode, generateModeratorCode, promoteToModerator } = require('../controllers/admin.controller');
+const {
+  generateAdminCode,
+  generateModeratorCode,
+  promoteToModerator,
+   getCodes,
+  deleteCode
+} = require('../controllers/admin.controller');
 const { verifyToken, checkRole } = require('../middlewares/auth.middleware');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
@@ -11,8 +17,10 @@ const adminCodeLimiter = rateLimit({
   keyGenerator: (req) => req.user?.id || rateLimit.ipKeyGenerator(req),
 });
 
-router.post("/generate-code", verifyToken, checkRole("admin"), adminCodeLimiter, generateAdminCode);
+router.post("/generate-admin-code", verifyToken, checkRole("admin"), adminCodeLimiter, generateAdminCode);
 router.post("/generate-moderator-code", verifyToken, checkRole("admin"), generateModeratorCode);
 router.put("/promote-to-moderator", verifyToken, checkRole("admin"), promoteToModerator);
+router.get("/codes", verifyToken, checkRole("admin"), getCodes);
+router.delete("/codes/:id", verifyToken, checkRole("admin"), deleteCode);
 
 module.exports = router;

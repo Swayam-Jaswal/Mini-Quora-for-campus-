@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../../app/authSlice';
 import { toast } from 'react-toastify';
 import LoginForm from '../components/LoginForm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -41,6 +41,17 @@ export default function Login() {
         />
         {loading && <p className="text-blue-400 text-center mt-4">Loading...</p>}
         {error && <p className="text-red-400 text-center mt-2">{error}</p>}
+
+        {/* ✅ Add Signup Link */}
+        <p className="text-center text-gray-400 mt-6">
+          Don&apos;t have an account?{' '}
+          <Link
+            to="/register"
+            className="text-blue-400 hover:text-blue-500 font-medium transition"
+          >
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

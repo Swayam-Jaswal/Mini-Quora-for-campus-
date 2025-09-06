@@ -14,7 +14,10 @@ const generateAdminCode = async (req, res) => {
     return res.status(200).json({
       message: "Admin code generated successfully",
       code,
+      expiresAt, 
       expiresInMinutes: 15,
+      _id: newCode._id,
+      role: "admin"
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to generate Admin Code", error });
@@ -32,7 +35,10 @@ const generateModeratorCode = async (req, res) => {
     return res.status(200).json({
       message: "Moderator code generated successfully",
       code,
+      expiresAt, 
       expiresInMinutes: 15,
+      _id: newCode._id,
+      role: "moderator"
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to generate Moderator Code", error });
@@ -54,4 +60,47 @@ const promoteToModerator = async (req, res) => {
   }
 };
 
-module.exports = { generateAdminCode, generateModeratorCode, promoteToModerator };
+const getCodes = async (req, res) => {
+  try {
+    const now = new Date();
+    const adminCodes = await AdminCode.find({ expiresAt: { $gt: now } }).lean();
+    const moderatorCodes = await ModeratorCode.find({ expiresAt: { $gt: now } }).lean();
+
+    const combined = [
+      ...adminCodes.map((c) => ({ ...c, role: "admin" })),
+      ...moderatorCodes.map((c) => ({ ...c, role: "moderator" })),
+    ];
+
+    return res.status(200).json(combined);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch codes", error });
+  }
+};
+
+
+const deleteCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let deleted = await AdminCode.findByIdAndDelete(id);
+    if (!deleted) {
+      deleted = await ModeratorCode.findByIdAndDelete(id);
+    }
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Code not found" });
+    }
+
+    return res.status(200).json({ message: "Code deleted successfully", id });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete code", error });
+  }
+};
+
+module.exports = {
+  generateAdminCode,
+  generateModeratorCode,
+  promoteToModerator,
+  getCodes,
+  deleteCode
+};
