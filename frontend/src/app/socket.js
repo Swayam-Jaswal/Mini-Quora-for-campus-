@@ -1,8 +1,10 @@
 import { io } from "socket.io-client";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const token = localStorage.getItem("token");
 
-const socket = io(BASE_URL, {
+const socket = io(SOCKET_URL, {
+  auth: { token },
   withCredentials: true,
   transports: ["websocket"],
 });

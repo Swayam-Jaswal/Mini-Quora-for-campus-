@@ -11,39 +11,45 @@ require('dotenv').config();
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, adminCode, moderatorCode } = req.body;
-    const emailCheck = await User.findOne({ email });
-    
-    if (adminCode && moderatorCode) {
-      return res.status(400).json({ message: "Provide only one code: either admin or moderator" });
-    }
+    const { name, email, password, promotionCode } = req.body;
 
+    const emailCheck = await User.findOne({ email });
     if (emailCheck) {
-      return res.status(409).json({ message: "email already exists" });
+      return res.status(409).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     let role = "user";
 
-    if (adminCode) {
-      const foundCode = await AdminCode.findOne({ code: adminCode });
-      if (!foundCode || foundCode.expiresAt < new Date()) {
-        return res.status(400).json({ message: "Invalid or expired admin token" });
+    if (promotionCode) {
+      const now = new Date();
+
+      // Check AdminCode first
+      let found = await AdminCode.findOne({ code: promotionCode });
+      if (found && found.expiresAt > now) {
+        role = "admin";
+        await AdminCode.deleteOne({ _id: found._id });
+      } else {
+        // Check ModeratorCode
+        found = await ModeratorCode.findOne({ code: promotionCode });
+        if (found && found.expiresAt > now) {
+          role = "moderator";
+          await ModeratorCode.deleteOne({ _id: found._id });
+        } else {
+          return res
+            .status(400)
+            .json({ message: "Invalid or expired promotion code" });
+        }
       }
-      role = "admin";
-      await AdminCode.deleteOne({ _id: foundCode._id });
     }
 
-    if (moderatorCode) {
-      const foundCode = await ModeratorCode.findOne({ code: moderatorCode });
-      if (!foundCode || foundCode.expiresAt < new Date()) {
-        return res.status(400).json({ message: "Invalid or expired moderator token" });
-      }
-      role = "moderator";
-      await ModeratorCode.deleteOne({ _id: foundCode._id });
-    }
-
-    const newUser = new User({ name, email, password: hashedPassword, role, isVerified: false });
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      isVerified: false,
+    });
 
     const verificationToken = newUser.createVerificationToken();
     await newUser.save();
@@ -53,12 +59,15 @@ const signup = async (req, res) => {
     try {
       await sendVerificationEmail(email, verificationLink);
     } catch (error) {
-      return res.status(500).json({ message: "Failed to send verification email", error });
+      return res
+        .status(500)
+        .json({ message: "Failed to send verification email", error });
     }
 
     return res.status(201).json({ message: "User created successfully" });
   } catch (error) {
-    return res.status(500).json({ message: "error registering user", error });
+    console.error("Signup error:", error);
+    return res.status(500).json({ message: "Error registering user", error });
   }
 };
 
@@ -73,8 +82,20 @@ const verifyEmail = async (req, res) => {
       verificationExpires: { $gt: Date.now() },
     });
 
-    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
-    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
+    if (!user) {
+      const alreadyUser = await User.findOne({
+        verificationTokenHash: undefined,
+        email: req.query.email,
+      });
+      if (alreadyUser?.isVerified) {
+        return res.status(200).json({ message: "Email already verified" });
+      }
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    if (user.isVerified) {
+      return res.status(200).json({ message: "User already verified" });
+    }
 
     user.isVerified = true;
     user.verificationTokenHash = undefined;

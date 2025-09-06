@@ -12,33 +12,33 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (!token) {
-      setStatus("error");
-      setMessage("Verification token missing");
-      toast.error("Error verifying email");
-      return;
-    }
+  let didRun = false;
+  const token = searchParams.get("token");
+  if (!token) {
+    setStatus("error");
+    setMessage("Verification token missing");
+    toast.error("Error verifying email");
+    return;
+  }
 
-    (async () => {
-      try {
-        const res = await axios.get(
-          `${BASE_URL}/auth/verify-email?token=${token}`
-        );
-        if (res.status === 200) {
-          setStatus("success");
-          setMessage(res.data.message || "Email verified");
-          toast.success("Verification successful");
-        }
-      } catch (error) {
-        setStatus("error");
-        setMessage(
-          error.response?.data?.message || "Invalid or expired link"
-        );
-        toast.error("Failed to verify email");
+  if (didRun) return;
+  didRun = true;
+
+  (async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/auth/verify-email?token=${token}`);
+      if (res.status === 200) {
+        setStatus("success");
+        setMessage(res.data.message || "Email verified");
+        toast.success("Verification successful");
       }
-    })();
-  }, []);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.response?.data?.message || "Invalid or expired link");
+      toast.error("Failed to verify email");
+    }
+  })();
+}, []);
 
   const handleGoLogin = () => navigate("/login");
 

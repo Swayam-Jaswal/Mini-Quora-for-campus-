@@ -74,8 +74,8 @@ const adminSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (s, a) => {
         s.loading = false;
-        s.users = a.payload.users;
-        s.totalUsers = a.payload.total;
+        s.users = a.payload.data || [];
+        s.totalUsers = a.payload.pagination?.total || 0;
       })
       .addCase(fetchUsers.rejected, (s, a) => {
         s.loading = false;
@@ -90,23 +90,26 @@ const adminSlice = createSlice({
       })
       .addCase(fetchCodes.fulfilled, (s, a) => {
         s.loading = false;
-        s.codes = a.payload;
+        s.codes = Array.isArray(a.payload)
+          ? a.payload
+          : a.payload.codes || [];
       })
       .addCase(fetchCodes.rejected, (s, a) => {
         s.loading = false;
         s.error = a.payload;
       })
+      .addCase(deleteCode.fulfilled, (s, a) => {
+        s.codes = s.codes.filter((c) => c._id !== a.payload);
+      })
       .addCase(deleteUser.fulfilled, (s, a) => {
         s.users = s.users.filter((u) => u._id !== a.payload);
+        s.totalUsers = Math.max(0, s.totalUsers - 1);
       })
       .addCase(generateAdminCode.fulfilled, (s, a) => {
         s.codes.push(a.payload);
       })
       .addCase(generateModeratorCode.fulfilled, (s, a) => {
         s.codes.push(a.payload);
-      })
-      .addCase(deleteCode.fulfilled, (s, a) => {
-        s.codes = s.codes.filter((c) => c._id !== a.payload);
       });
   },
 });

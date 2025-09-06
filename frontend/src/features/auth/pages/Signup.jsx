@@ -6,15 +6,15 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Register() {
-  const [registeredEmail,setRegisteredEmail] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    adminCode: "",
+    promotionCode: "",
   });
-  
+
   const REGISTER_URL = `${BASE_URL}/auth/signup`;
   const [boxChange, setBoxChange] = useState(false);
 
@@ -22,14 +22,16 @@ export default function Register() {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]:value
+      [name]: value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(REGISTER_URL,formData,{withCredentials:true});
+      const res = await axios.post(REGISTER_URL, formData, {
+        withCredentials: true,
+      });
       if (res.status === 201) {
         toast.success("Signup successful!");
         setRegisteredEmail(formData.email);
@@ -38,8 +40,9 @@ export default function Register() {
           email: "",
           password: "",
           confirmPassword: "",
-          adminCode: "",
+          promotionCode: "",
         });
+
         setBoxChange(true);
       }
     } catch (error) {

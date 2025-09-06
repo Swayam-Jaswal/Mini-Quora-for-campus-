@@ -61,14 +61,14 @@ export default function RegisterForm({ formData, handleOnChange, handleSubmit })
 
       <div>
         <label className="block text-sm font-medium text-zinc-300 mb-1">
-          Admin Code (optional)
+          Promotion Code (optional)
         </label>
         <input
           type="text"
-          name="adminCode"
-          value={formData.adminCode}
+          name="promotionCode"
+          value={formData.promotionCode}
           onChange={handleOnChange}
-          placeholder="Enter admin code if any"
+          placeholder="Enter promotion code if any"
           className="w-full px-4 py-2 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

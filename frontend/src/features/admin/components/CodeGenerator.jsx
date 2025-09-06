@@ -4,29 +4,26 @@ import {
   generateAdminCode,
   generateModeratorCode,
   deleteCode,
-  fetchCodes, // <-- make sure this thunk exists in adminSlice
+  fetchCodes,
 } from "../slices/adminSlice";
 import Loader from "../../../components/common/Loader";
 import TimeAgo from "../../../components/common/TimeAgo";
 import { Trash2 } from "lucide-react";
-
-// ✅ Reusable components
 import ShowHideText from "../../../components/common/ShowHideText";
 import CopyText from "../../../components/common/CopyText";
 
 export default function CodeGenerator() {
   const dispatch = useDispatch();
-  const { codes, loading } = useSelector((s) => s.admin);
+  const { codes = [], loading } = useSelector((s) => s.admin);
 
   useEffect(() => {
-    dispatch(fetchCodes()); // load codes on page mount
+    dispatch(fetchCodes());
   }, [dispatch]);
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Code Generator</h2>
 
-      {/* Generate buttons */}
       <div className="flex gap-4 mb-6">
         <button
           onClick={() => dispatch(generateAdminCode())}
@@ -42,9 +39,8 @@ export default function CodeGenerator() {
         </button>
       </div>
 
-      {loading && <Loader text="Generating code..." />}
+      {loading && <Loader text="Loading..." />}
 
-      {/* Codes table */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -56,26 +52,24 @@ export default function CodeGenerator() {
             </tr>
           </thead>
           <tbody>
-            {codes.length === 0 ? (
+            {(codes || []).length === 0 ? (
               <tr>
                 <td colSpan="4" className="text-center p-4 text-gray-400">
                   No codes generated yet
                 </td>
               </tr>
             ) : (
-              codes.map((c) => (
+              (codes || []).map((c) => (
                 <tr
                   key={c._id || c.code}
                   className="border-b border-white/10 hover:bg-white/5"
                 >
-                  {/* ✅ ShowHideText and CopyText side by side */}
                   <td className="p-3">
                     <div className="flex items-center gap-1">
                       <ShowHideText text={c.code} />
                       <CopyText text={c.code} />
                     </div>
                   </td>
-
                   <td className="p-3 capitalize">{c.role}</td>
                   <td className="p-3">
                     <TimeAgo date={c.expiresAt} />
