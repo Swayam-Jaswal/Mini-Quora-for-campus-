@@ -34,7 +34,6 @@ export default function AppRoutes() {
         }
       />
 
-      {/* ✅ Protected Admin Dashboard */}
       <Route
         path="/admin"
         element={

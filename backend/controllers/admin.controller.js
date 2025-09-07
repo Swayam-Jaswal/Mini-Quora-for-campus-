@@ -3,15 +3,15 @@ const AdminCode = require("../models/adminCode");
 const ModeratorCode = require("../models/moderatorCode");
 const User = require("../models/User");
 
-// --- Added models for dashboard ---
+// --- Dashboard Models ---
 const Question = require("../models/question");
 const Answer = require("../models/answer");
 const Request = require("../models/request");
 const Announcement = require("../models/announcements");
 
-// === EXISTING FUNCTIONALITIES (kept intact) ===
+// === Codes ===
 
-// Generate Admin Code (15 min expiry)
+// ✅ Superadmin: generate Admin code
 const generateAdminCode = async (req, res) => {
   try {
     const code = crypto.randomBytes(6).toString("hex");
@@ -33,7 +33,7 @@ const generateAdminCode = async (req, res) => {
   }
 };
 
-// Generate Moderator Code (15 min expiry)
+// ✅ Admin + Superadmin: generate Moderator code
 const generateModeratorCode = async (req, res) => {
   try {
     const code = crypto.randomBytes(6).toString("hex");
@@ -55,7 +55,9 @@ const generateModeratorCode = async (req, res) => {
   }
 };
 
-// Promote user to moderator (by userId)
+// === Role Management ===
+
+// Promote to moderator
 const promoteToModerator = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -64,8 +66,8 @@ const promoteToModerator = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (user.role === "moderator") {
-      return res.status(400).json({ message: "User is already a moderator" });
+    if (["moderator", "admin", "superadmin"].includes(user.role)) {
+      return res.status(400).json({ message: "User already has elevated role" });
     }
 
     user.role = "moderator";
@@ -77,7 +79,80 @@ const promoteToModerator = async (req, res) => {
   }
 };
 
-// Get valid codes (combined array with role info)
+// Promote to admin
+const promoteToAdmin = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ message: "UserId required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.role === "admin") {
+      return res.status(400).json({ message: "Already an admin" });
+    }
+    if (user.role === "superadmin") {
+      return res.status(400).json({ message: "Superadmin cannot be changed" });
+    }
+
+    user.role = "admin";
+    await user.save();
+
+    return res.status(200).json({ message: "User promoted to admin", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Error promoting user to admin", error });
+  }
+};
+
+// Demote moderator → user
+const demoteToUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ message: "UserId is required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (["superadmin", "admin"].includes(user.role)) {
+      return res.status(403).json({ message: "Admins and superadmins cannot be demoted here" });
+    }
+
+    if (user.role !== "moderator") {
+      return res.status(400).json({ message: "Only moderators can be demoted" });
+    }
+
+    user.role = "user";
+    await user.save();
+
+    return res.status(200).json({ message: "User demoted to user", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Error demoting user", error });
+  }
+};
+
+// Demote admin → user
+const demoteAdminToUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ message: "UserId required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.role !== "admin") {
+      return res.status(400).json({ message: "Only admins can be demoted" });
+    }
+
+    user.role = "user";
+    await user.save();
+
+    return res.status(200).json({ message: "Admin demoted to user", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Error demoting admin", error });
+  }
+};
+
+// === Codes ===
 const getCodes = async (req, res) => {
   try {
     const now = new Date();
@@ -95,7 +170,6 @@ const getCodes = async (req, res) => {
   }
 };
 
-// Delete code by ID
 const deleteCode = async (req, res) => {
   try {
     const { id } = req.params;
@@ -115,9 +189,7 @@ const deleteCode = async (req, res) => {
   }
 };
 
-// === NEW DASHBOARD FUNCTIONS (added) ===
-
-// Stats for dashboard
+// === Dashboard ===
 const getStats = async (req, res) => {
   try {
     const [users, questions, answers, announcements, pendingRequests] = await Promise.all([
@@ -140,7 +212,6 @@ const getStats = async (req, res) => {
   }
 };
 
-// Paginated user list (admin only)
 const getUsers = async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page || "1", 10));
@@ -165,7 +236,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-// Delete user by ID (admin only)
 const deleteUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -173,8 +243,8 @@ const deleteUserById = async (req, res) => {
 
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.role === "admin") {
-      return res.status(400).json({ message: "Cannot delete another admin" });
+    if (user.role === "superadmin") {
+      return res.status(403).json({ message: "Cannot delete superadmin" });
     }
 
     await user.deleteOne();
@@ -188,6 +258,9 @@ module.exports = {
   generateAdminCode,
   generateModeratorCode,
   promoteToModerator,
+  promoteToAdmin,
+  demoteToUser,
+  demoteAdminToUser,
   getCodes,
   deleteCode,
   getStats,

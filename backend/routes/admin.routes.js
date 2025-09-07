@@ -4,6 +4,9 @@ const {
   generateAdminCode,
   generateModeratorCode,
   promoteToModerator,
+  promoteToAdmin,
+  demoteToUser,
+  demoteAdminToUser,
   getCodes,
   deleteCode,
   getStats,
@@ -22,17 +25,22 @@ const adminCodeLimiter = rateLimit({
   keyGenerator: (req) => req.user?.id || req.ip,
 });
 
-// Code management (admin-only)
-router.post("/generate-admin-code", verifyToken, checkRole("admin"), adminCodeLimiter, generateAdminCode);
+// === Superadmin-only routes ===
+router.post("/generate-admin-code", verifyToken, checkRole("superadmin"), adminCodeLimiter, generateAdminCode);
+router.put("/promote-to-admin", verifyToken, checkRole("superadmin"), promoteToAdmin);
+router.put("/demote-admin-to-user", verifyToken, checkRole("superadmin"), demoteAdminToUser);
+
+// === Admin + Superadmin routes ===
 router.post("/generate-moderator-code", verifyToken, checkRole("admin"), generateModeratorCode);
 router.put("/promote-to-moderator", verifyToken, checkRole("admin"), promoteToModerator);
+router.put("/demote-to-user", verifyToken, checkRole("admin"), demoteToUser);
 router.get("/codes", verifyToken, checkRole("admin"), getCodes);
 router.delete("/codes/:id", verifyToken, checkRole("admin"), deleteCode);
 
-// Dashboard stats (admin + moderator)
+// === Dashboard stats (admin + moderator + superadmin) ===
 router.get("/stats", verifyToken, allowRoles("admin", "moderator"), getStats);
 
-// Users management (admin-only)
+// === User management (admin + superadmin) ===
 router.get("/users", verifyToken, checkRole("admin"), getUsers);
 router.delete("/users/:id", verifyToken, checkRole("admin"), deleteUserById);
 
