@@ -1,26 +1,38 @@
+// announcement.routes.js
 const express = require('express');
 const router = express.Router();
 const { verifyToken, allowRoles } = require('../middlewares/auth.middleware');
-const { createAnnouncement, getAllAnnouncements, deleteAnnouncement } = require('../controllers/announcement.controller');
+const {
+  createAnnouncement,
+  getAllAnnouncements,
+  deleteAnnouncement,
+  updateAnnouncement,
+} = require('../controllers/announcement.controller');
 
+// GET all announcements (public)
+router.get('/', getAllAnnouncements);
+
+// POST create announcement (restricted)
 router.post(
-  '/create-announcement',
+  '/',
   verifyToken,
-  allowRoles("admin", "moderator"),
+  allowRoles("admin", "moderator", "superadmin"),
   createAnnouncement
 );
 
-router.get(
-  '/get-announcements',
+// PUT update announcement (restricted)
+router.put(
+  '/:id',
   verifyToken,
-  allowRoles("admin", "moderator"),
-  getAllAnnouncements
+  allowRoles("admin", "moderator", "superadmin"),
+  updateAnnouncement
 );
 
+// DELETE announcement (restricted)
 router.delete(
-  '/delete-announcement/:id',
+  '/:id',
   verifyToken,
-  allowRoles("admin", "moderator"),
+  allowRoles("admin", "moderator", "superadmin"),
   deleteAnnouncement
 );
 

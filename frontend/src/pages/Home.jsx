@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from "../components/layout/Navbar";
-import Announcements from "../components/layout/Announcements";
+import Announcements from "../features/announcements/components/Announcements";
 import QuickLinks from "../components/layout/QuickLinks";
 import UniversityUpdates from "../components/layout/UniversityUpdates";
 export default function Home() {

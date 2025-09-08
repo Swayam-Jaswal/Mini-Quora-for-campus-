@@ -47,7 +47,7 @@ app.use("/admin", adminRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/answers", answerRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/announcement", announcementRoutes);
+app.use("/api/announcements", announcementRoutes);
 app.use("/api/requests", requestRoutes);
 
 // Health check

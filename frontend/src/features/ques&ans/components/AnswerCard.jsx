@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteAnswer, updateAnswer } from "../slices/answerSlice";
 import AnswerModal from "./AnswerModal";
-import ConfirmModal from "../components/ConfirmModal";
+import ConfirmModal from "../../../components/common/ConfirmModal";
 import TimeAgo from "../../../components/common/TimeAgo";
 import { toast } from "react-toastify";
 import Loader from "../../../components/common/Loader";

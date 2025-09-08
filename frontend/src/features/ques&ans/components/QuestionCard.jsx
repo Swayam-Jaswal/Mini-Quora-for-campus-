@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { MoreVertical, UserCircle2 } from "lucide-react";
 import { deleteQuestion, updateQuestion } from "../slices/questionSlice";
 import { toast } from "react-toastify";
-import ConfirmModal from "./ConfirmModal";
-import EditModal from "./EditModal";
+import ConfirmModal from "../../../components/common/ConfirmModal";
+import EditModal from "../../../components/common/EditModal";
 import TimeAgo from "../../../components/common/TimeAgo";
 
 export default function QuestionCard({

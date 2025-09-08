@@ -1,6 +1,6 @@
 // src/components/ConfirmModal.jsx
 import React from "react";
-import Loader from "../../../components/common/Loader"; // ✅ Reusable loader
+import Loader from "./Loader"; // ✅ Reusable loader
 
 export default function ConfirmModal({
   open,

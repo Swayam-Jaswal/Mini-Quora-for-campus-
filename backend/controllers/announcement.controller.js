@@ -5,17 +5,21 @@ const createAnnouncement = async (req, res) => {
     const { text, type } = req.body;
 
     if (!text) {
-      return res.status(400).json({ success: false, message: "Announcement body is required!" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Announcement body is required!" });
     }
 
-    if (!["info", "warning", "alert"].includes(type)) {
-      return res.status(400).json({ success: false, message: "Invalid announcement type" });
+    if (!["info", "deadline", "alert"].includes(type)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid announcement type" });
     }
 
     const newAnnouncement = new Announcement({
       text,
       type,
-      author: req.user._id,
+      author: req.user.id,
     });
 
     await newAnnouncement.save();
@@ -29,6 +33,37 @@ const createAnnouncement = async (req, res) => {
     return res.status(500).json({ success: false, message: "Couldn't create announcement", error });
   }
 };
+
+const updateAnnouncement = async (req, res) => {
+  try {
+    const { text, type } = req.body;
+
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: "Announcement not found" });
+    }
+
+    if (!["admin", "moderator", "superadmin"].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: "Unauthorized to update announcement" });
+    }
+
+    if (text) announcement.text = text;
+    if (type && ["info", "deadline", "alert"].includes(type)) {
+      announcement.type = type;
+    }
+
+    await announcement.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Announcement updated successfully",
+      data: announcement,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Couldn't update announcement", error });
+  }
+};
+
 
 const getAllAnnouncements = async (req, res) => {
   try {
@@ -62,4 +97,4 @@ const deleteAnnouncement = async (req, res) => {
   }
 };
 
-module.exports = { createAnnouncement, getAllAnnouncements, deleteAnnouncement };
+module.exports = { createAnnouncement, updateAnnouncement, getAllAnnouncements, deleteAnnouncement };
