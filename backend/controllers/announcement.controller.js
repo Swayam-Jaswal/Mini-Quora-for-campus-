@@ -5,15 +5,11 @@ const createAnnouncement = async (req, res) => {
     const { text, type } = req.body;
 
     if (!text) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Announcement body is required!" });
+      return res.status(400).json({ success: false, message: "Announcement body is required!" });
     }
 
     if (!["info", "deadline", "alert"].includes(type)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid announcement type" });
+      return res.status(400).json({ success: false, message: "Invalid announcement type" });
     }
 
     const newAnnouncement = new Announcement({
@@ -24,13 +20,18 @@ const createAnnouncement = async (req, res) => {
 
     await newAnnouncement.save();
 
+    // ✅ emit to all connected clients
+    req.app.get("io").to("announcements").emit("announcement:new", newAnnouncement);
+
     return res.status(201).json({
       success: true,
       message: "Announcement created successfully",
       data: newAnnouncement,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Couldn't create announcement", error });
+    return res
+      .status(500)
+      .json({ success: false, message: "Couldn't create announcement", error });
   }
 };
 
@@ -44,7 +45,9 @@ const updateAnnouncement = async (req, res) => {
     }
 
     if (!["admin", "moderator", "superadmin"].includes(req.user.role)) {
-      return res.status(403).json({ success: false, message: "Unauthorized to update announcement" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized to update announcement" });
     }
 
     if (text) announcement.text = text;
@@ -54,16 +57,20 @@ const updateAnnouncement = async (req, res) => {
 
     await announcement.save();
 
+    // ✅ emit update event
+    req.app.get("io").to("announcements").emit("announcement:updated", announcement);
+
     return res.status(200).json({
       success: true,
       message: "Announcement updated successfully",
       data: announcement,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Couldn't update announcement", error });
+    return res
+      .status(500)
+      .json({ success: false, message: "Couldn't update announcement", error });
   }
 };
-
 
 const getAllAnnouncements = async (req, res) => {
   try {
@@ -77,7 +84,9 @@ const getAllAnnouncements = async (req, res) => {
       data: announcements,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Couldn't get announcements", error });
+    return res
+      .status(500)
+      .json({ success: false, message: "Couldn't get announcements", error });
   }
 };
 
@@ -87,14 +96,31 @@ const deleteAnnouncement = async (req, res) => {
     if (!announcement) {
       return res.status(404).json({ success: false, message: "Announcement not found" });
     }
+
     if (!["admin", "moderator"].includes(req.user.role)) {
-      return res.status(403).json({ success: false, message: "Unauthorized to delete this announcement" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized to delete this announcement" });
     }
+
     await announcement.deleteOne();
-    return res.status(200).json({ success: true, message: "Announcement deleted successfully" });
+
+    // ✅ emit delete event
+    req.app.get("io").to("announcements").emit("announcement:deleted", req.params.id);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Announcement deleted successfully" });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Couldn't delete announcement", error });
+    return res
+      .status(500)
+      .json({ success: false, message: "Couldn't delete announcement", error });
   }
 };
 
-module.exports = { createAnnouncement, updateAnnouncement, getAllAnnouncements, deleteAnnouncement };
+module.exports = {
+  createAnnouncement,
+  updateAnnouncement,
+  getAllAnnouncements,
+  deleteAnnouncement,
+};

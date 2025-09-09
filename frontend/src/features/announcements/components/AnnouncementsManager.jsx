@@ -5,14 +5,13 @@ import {
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
+  addAnnouncement,
+  editAnnouncement,
+  removeAnnouncement,
 } from "../slice/announcementsSlice";
-import * as LucideIcons from "lucide-react"; // ✅ import all icons
-import {
-  Megaphone,
-  Edit2,
-  Trash2,
-  Plus,
-} from "lucide-react";
+import { socket } from "../../../app/socket"; // ✅ import socket
+import * as LucideIcons from "lucide-react";
+import { Megaphone, Edit2, Trash2, Plus } from "lucide-react";
 import ConfirmModal from "../../../components/common/ConfirmModal";
 import AnnouncementEditModal from "../../../components/common/AnnouncementEditModal";
 
@@ -23,17 +22,24 @@ export default function AnnouncementsManager() {
   );
 
   const [form, setForm] = useState({ text: "", type: "info" });
-
-  // delete modal state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-
-  // edit modal state
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAnnouncements());
+
+    // ✅ Listen for socket events
+    socket.on("announcement:new", (a) => dispatch(addAnnouncement(a)));
+    socket.on("announcement:updated", (a) => dispatch(editAnnouncement(a)));
+    socket.on("announcement:deleted", (id) => dispatch(removeAnnouncement(id)));
+
+    return () => {
+      socket.off("announcement:new");
+      socket.off("announcement:updated");
+      socket.off("announcement:deleted");
+    };
   }, [dispatch]);
 
   const handleSubmit = (e) => {
@@ -75,7 +81,6 @@ export default function AnnouncementsManager() {
     }
   };
 
-  // ✅ Utility to render icon dynamically
   const renderIcon = (type) => {
     const iconMap = {
       alert: "AlertTriangle",
@@ -93,7 +98,6 @@ export default function AnnouncementsManager() {
         Manage Announcements
       </h2>
 
-      {/* Create form */}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col md:flex-row gap-3 mb-8 bg-black/30 p-4 rounded-xl shadow-lg"
@@ -122,7 +126,6 @@ export default function AnnouncementsManager() {
         </button>
       </form>
 
-      {/* List */}
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -155,7 +158,6 @@ export default function AnnouncementsManager() {
         </ul>
       )}
 
-      {/* Confirm delete modal */}
       <ConfirmModal
         open={confirmOpen}
         title="Delete Announcement"
@@ -164,7 +166,6 @@ export default function AnnouncementsManager() {
         onCancel={() => setConfirmOpen(false)}
       />
 
-      {/* Edit modal */}
       <AnnouncementEditModal
         open={editOpen}
         onClose={() => setEditOpen(false)}

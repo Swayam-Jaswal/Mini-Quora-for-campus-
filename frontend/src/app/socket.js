@@ -1,12 +1,8 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
-const token = localStorage.getItem("token");
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
-const socket = io(SOCKET_URL, {
-  auth: { token },
-  withCredentials: true,
-  transports: ["websocket"],
+export const socket = io(SOCKET_URL, {
+  withCredentials: true,   // ✅ send cookies automatically
+  transports: ["websocket", "polling"],
 });
-
-export default socket;

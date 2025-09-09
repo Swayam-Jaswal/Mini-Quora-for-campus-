@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAnnouncements } from "../slice/announcementsSlice";
+import { fetchAnnouncements, addAnnouncement } from "../slice/announcementsSlice";
+import { socket } from "../../../app/socket"; // ✅ import socket
 import { AlertTriangle, FileText, Info } from "lucide-react";
 
 const iconMap = {
   alert: <AlertTriangle size={18} className="text-red-400" />,
   deadline: <FileText size={18} className="text-yellow-400" />,
-  info: <Info size={18} className="text-blue-400" />, // ✅ Changed from Wifi → Info
+  info: <Info size={18} className="text-blue-400" />,
 };
 
 export default function Announcements() {
@@ -17,6 +18,15 @@ export default function Announcements() {
 
   useEffect(() => {
     dispatch(fetchAnnouncements());
+
+    // ✅ Socket listener for new announcements
+    socket.on("announcement:new", (announcement) => {
+      dispatch(addAnnouncement(announcement));
+    });
+
+    return () => {
+      socket.off("announcement:new");
+    };
   }, [dispatch]);
 
   return (

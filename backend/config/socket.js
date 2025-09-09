@@ -1,39 +1,23 @@
 const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
 
-function initSocket(server, allowedOrigins) {
+module.exports = (server, allowedOrigins) => {
   const io = new Server(server, {
     cors: {
       origin: allowedOrigins,
+      methods: ["GET", "POST"],
       credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     },
   });
 
-  // 🔐 Authenticate socket connection
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token;
-    if (!token) return next(new Error("No token provided"));
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.user = decoded; // attach user info
-      next();
-    } catch (err) {
-      next(new Error("Unauthorized"));
-    }
+    // middleware (optional)
+    next();
   });
 
-  // 🎯 Socket events
   io.on("connection", (socket) => {
-    console.log(`✅ Socket connected: ${socket.user?.id} (${socket.user?.role})`);
-
-    socket.on("disconnect", () => {
-      console.log(`❌ Socket disconnected: ${socket.user?.id}`);
-    });
+    console.log("✅ Socket connected:", socket.id);
+    socket.join("announcements");
   });
 
-  return io;
-}
-
-module.exports = initSocket;
+  return io; // <--- Don't forget this
+};

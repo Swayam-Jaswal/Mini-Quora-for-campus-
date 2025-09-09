@@ -20,14 +20,18 @@ import AnswerCard from "../components/AnswerCard";
 import AnswerForm from "../components/AnswerForm";
 import Navbar from "../../../components/layout/Navbar";
 import BackButton from "../../../components/common/BackButton";
-import socket from "../../../app/socket";
+import { socket } from "../../../app/socket"; // ✅ updated import
 
 export default function QuestionDetailsPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const { current: question, loading: questionLoading } = useSelector((state) => state.questions);
-  const { list: answers, loading: answersLoading } = useSelector((state) => state.answers);
+  const { current: question, loading: questionLoading } = useSelector(
+    (state) => state.questions
+  );
+  const { list: answers, loading: answersLoading } = useSelector(
+    (state) => state.answers
+  );
 
   useEffect(() => {
     dispatch(fetchQuestionById(id));
@@ -53,9 +57,11 @@ export default function QuestionDetailsPage() {
         dispatch(socketIncrementAnswersCount({ questionId, delta: -1 }));
       }
     };
+
     socket.on("answerCreated", onCreated);
     socket.on("answerUpdated", onUpdated);
     socket.on("answerDeleted", onDeleted);
+
     return () => {
       socket.off("answerCreated", onCreated);
       socket.off("answerUpdated", onUpdated);
@@ -109,7 +115,9 @@ export default function QuestionDetailsPage() {
             <AnswerForm onSubmit={handleAnswerSubmit} />
           </div>
 
-          {answersLoading && <p className="text-gray-400 mt-4">Loading answers...</p>}
+          {answersLoading && (
+            <p className="text-gray-400 mt-4">Loading answers...</p>
+          )}
           <div className="space-y-3 flex-1 mt-6">
             {answers?.map((a) => (
               <div key={a._id} className="flex items-start gap-2">

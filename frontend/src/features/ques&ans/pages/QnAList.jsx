@@ -2,14 +2,23 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../../../components/layout/Navbar";
 import QuickLinks from "../../../components/layout/QuickLinks";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchQuestions, createQuestion, socketQuestionCreated, socketQuestionUpdated, socketQuestionDeleted, socketIncrementAnswersCount } from "../slices/questionSlice";
+import {
+  fetchQuestions,
+  createQuestion,
+  socketQuestionCreated,
+  socketQuestionUpdated,
+  socketQuestionDeleted,
+  socketIncrementAnswersCount,
+} from "../slices/questionSlice";
 import QuestionCard from "../components/QuestionCard";
 import QuestionForm from "../components/QuestionForm";
-import socket from "../../../app/socket";
+import { socket } from "../../../app/socket"; // ✅ updated import
 
 export default function QnaPage() {
   const dispatch = useDispatch();
-  const { list: questions, loading, error } = useSelector((state) => state.questions);
+  const { list: questions, loading, error } = useSelector(
+    (state) => state.questions
+  );
 
   const [formOpen, setFormOpen] = useState(false);
 
@@ -18,16 +27,33 @@ export default function QnaPage() {
   }, [dispatch]);
 
   useEffect(() => {
-    const onQCreated = ({ question }) => dispatch(socketQuestionCreated({ ...question, answersCount: question.answersCount ?? 0 }));
-    const onQUpdated = ({ question }) => dispatch(socketQuestionUpdated(question));
-    const onQDeleted = ({ questionId }) => dispatch(socketQuestionDeleted(questionId));
-    const onACreated = ({ questionId }) => dispatch(socketIncrementAnswersCount({ questionId, delta: 1 }));
-    const onADeleted = ({ questionId }) => dispatch(socketIncrementAnswersCount({ questionId, delta: -1 }));
+    const onQCreated = ({ question }) => {
+      dispatch(
+        socketQuestionCreated({
+          ...question,
+          answersCount: question.answersCount ?? 0,
+        })
+      );
+    };
+    const onQUpdated = ({ question }) => {
+      dispatch(socketQuestionUpdated(question));
+    };
+    const onQDeleted = ({ questionId }) => {
+      dispatch(socketQuestionDeleted(questionId));
+    };
+    const onACreated = ({ questionId }) => {
+      dispatch(socketIncrementAnswersCount({ questionId, delta: 1 }));
+    };
+    const onADeleted = ({ questionId }) => {
+      dispatch(socketIncrementAnswersCount({ questionId, delta: -1 }));
+    };
+
     socket.on("questionCreated", onQCreated);
     socket.on("questionUpdated", onQUpdated);
     socket.on("questionDeleted", onQDeleted);
     socket.on("answerCreated", onACreated);
     socket.on("answerDeleted", onADeleted);
+
     return () => {
       socket.off("questionCreated", onQCreated);
       socket.off("questionUpdated", onQUpdated);
@@ -82,7 +108,9 @@ export default function QnaPage() {
       {formOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-xl p-6 max-w-lg w-full shadow-lg">
-            <h2 className="text-lg font-semibold text-white mb-4">Ask a Question</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">
+              Ask a Question
+            </h2>
             <QuestionForm onSubmit={handleQuestionSubmit} />
             <div className="flex justify-end mt-4">
               <button

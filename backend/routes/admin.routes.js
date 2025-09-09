@@ -19,10 +19,10 @@ const router = express.Router();
 
 // Limit admin code generation
 const adminCodeLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
   message: "Too many admin code requests. Please try again later.",
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req), // ✅ IPv6 safe
 });
 
 // === Superadmin-only routes ===
