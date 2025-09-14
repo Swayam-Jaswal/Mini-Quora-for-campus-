@@ -20,7 +20,7 @@ export default function Navbar() {
             to="/admin"
             className="hover:text-white transition font-semibold text-yellow-300"
           >
-            Dashboard
+            {role === "moderator" ? "Moderator Dashboard" : "Admin Dashboard"}
           </Link>
         )}
       </div>

@@ -14,6 +14,7 @@ const answerRoutes = require("./routes/answer.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const announcementRoutes = require("./routes/announcement.routes");
 const requestRoutes = require("./routes/request.routes");
+const userRoutes = require("./routes/user.routes");
 
 const app = express();
 mongoDB();
@@ -41,7 +42,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 
-// === Routes ===
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/questions", questionRoutes);
@@ -49,21 +49,17 @@ app.use("/api/answers", answerRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/users", userRoutes);
 
-// Health check
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-// === HTTP Server ===
 const server = http.createServer(app);
 
-// === Init WebSocket ===
 const initSocket = require("./config/socket");
 const io = initSocket(server, allowedOrigins);
 
-// Attach io so controllers can broadcast
 app.set("io", io);
 
-// === Start Server ===
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

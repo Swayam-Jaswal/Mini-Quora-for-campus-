@@ -4,6 +4,7 @@ import questionReducer from '../features/ques&ans/slices/questionSlice';
 import answerReducer from '../features/ques&ans/slices/answerSlice';
 import adminReducer from '../features/admin/slices/adminSlice';
 import announcementsReducer from '../features/announcements/slice/announcementsSlice';
+import profileReducer from "../features/profile/slices/profileSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     answers: answerReducer,
     admin: adminReducer,
     announcements: announcementsReducer,
+    profile: profileReducer,
   },
 });

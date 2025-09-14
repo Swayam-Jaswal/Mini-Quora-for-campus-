@@ -8,6 +8,7 @@ import VerifyEmail from "../features/auth/pages/VerifyEmail";
 import QnaList from "../features/ques&ans/pages/QnAList";
 import QuestionDetails from "../features/ques&ans/pages/QuestionDetails";
 import AdminDashboard from "../features/admin/pages/adminDashboard";
+import Profile from "../features/profile/pages/Profile";
 
 export default function AppRoutes() {
   return (
@@ -30,6 +31,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <QuestionDetails />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         }
       />

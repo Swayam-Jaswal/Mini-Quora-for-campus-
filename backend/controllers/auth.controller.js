@@ -24,13 +24,11 @@ const signup = async (req, res) => {
     if (promotionCode) {
       const now = new Date();
 
-      // Check AdminCode first
       let found = await AdminCode.findOne({ code: promotionCode });
       if (found && found.expiresAt > now) {
         role = "admin";
         await AdminCode.deleteOne({ _id: found._id });
       } else {
-        // Check ModeratorCode
         found = await ModeratorCode.findOne({ code: promotionCode });
         if (found && found.expiresAt > now) {
           role = "moderator";

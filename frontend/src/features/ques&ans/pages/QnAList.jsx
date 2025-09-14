@@ -12,7 +12,8 @@ import {
 } from "../slices/questionSlice";
 import QuestionCard from "../components/QuestionCard";
 import QuestionForm from "../components/QuestionForm";
-import { socket } from "../../../app/socket"; // ✅ updated import
+import { socket } from "../../../app/socket";
+import BackButton from "../../../components/common/BackButton";
 
 export default function QnaPage() {
   const dispatch = useDispatch();
@@ -71,6 +72,7 @@ export default function QnaPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#29323C] to-[#485563] text-white">
       <Navbar />
+      <BackButton/>
       <main className="flex-1 p-6 flex gap-6 max-w-7xl mx-auto w-full">
         <QuickLinks />
         <section className="flex-1 bg-black/20 rounded-2xl p-6 shadow-lg">

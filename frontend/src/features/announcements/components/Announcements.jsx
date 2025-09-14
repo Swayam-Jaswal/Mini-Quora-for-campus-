@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchAnnouncements, addAnnouncement } from "../slice/announcementsSlice";
 import { socket } from "../../../app/socket"; // ✅ import socket
 import { AlertTriangle, FileText, Info } from "lucide-react";
+import TimeAgo from "../../../components/common/TimeAgo";
 
 const iconMap = {
   alert: <AlertTriangle size={18} className="text-red-400" />,
@@ -19,7 +20,6 @@ export default function Announcements() {
   useEffect(() => {
     dispatch(fetchAnnouncements());
 
-    // ✅ Socket listener for new announcements
     socket.on("announcement:new", (announcement) => {
       dispatch(addAnnouncement(announcement));
     });
@@ -40,6 +40,7 @@ export default function Announcements() {
             <li key={item._id} className="flex items-center gap-2 text-gray-200">
               {iconMap[item.type] || iconMap.info}
               {item.text}
+              <TimeAgo className=""/>
             </li>
           ))}
         </ul>

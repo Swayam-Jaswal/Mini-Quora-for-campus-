@@ -9,10 +9,8 @@ const {
   updateAnnouncement,
 } = require('../controllers/announcement.controller');
 
-// GET all announcements (public)
 router.get('/', getAllAnnouncements);
 
-// POST create announcement (restricted)
 router.post(
   '/',
   verifyToken,
@@ -20,7 +18,6 @@ router.post(
   createAnnouncement
 );
 
-// PUT update announcement (restricted)
 router.put(
   '/:id',
   verifyToken,
@@ -28,7 +25,6 @@ router.put(
   updateAnnouncement
 );
 
-// DELETE announcement (restricted)
 router.delete(
   '/:id',
   verifyToken,

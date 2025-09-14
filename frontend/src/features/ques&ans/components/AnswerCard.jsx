@@ -105,7 +105,6 @@ export default function AnswerCard({
                       onClick={() => setPreviewImage(att.url)}
                     />
 
-                    {/* ✅ Download button for images */}
                     <a
                       href={getDownloadUrl(att.url)}
                       download
