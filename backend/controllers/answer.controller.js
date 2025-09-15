@@ -26,7 +26,7 @@ const createAnswer = async (req, res) => {
     });
 
     await answer.save();
-    await answer.populate("author", "_id name email role");
+    await answer.populate("author", "_id name email role avatar");
 
     const obj = maskAuthor(answer);
 
@@ -52,7 +52,7 @@ const getAnswersByQuestion = async (req, res) => {
     const { id } = req.params;
 
     const answers = await Answer.find({ question: id })
-      .populate("author", "_id name email role")
+      .populate("author", "_id name email role avatar")
       .sort({ createdAt: -1 });
 
     const masked = answers.map((a) => maskAuthor(a));
@@ -90,7 +90,7 @@ const updateAnswer = async (req, res) => {
     }
 
     await answer.save();
-    await answer.populate("author", "_id name email role");
+    await answer.populate("author", "_id name email role avatar");
 
     const obj = maskAuthor(answer);
 

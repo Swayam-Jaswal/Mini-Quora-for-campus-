@@ -15,9 +15,9 @@ exports.getMyProfile = async (req, res) => {
 };
 
 // Update logged-in user's profile
+// Update logged-in user's profile
 exports.updateMyProfile = async (req, res) => {
   try {
-    // ✅ whitelist allowed fields (added anonymousMode & privateProfile)
     const allowed = [
       "name",
       "bio",
@@ -40,6 +40,18 @@ exports.updateMyProfile = async (req, res) => {
         .filter(Boolean);
     }
 
+    // ✅ remove empty social links completely
+    if (updates.social) {
+      Object.keys(updates.social).forEach((platform) => {
+        if (!updates.social[platform]) {
+          updates.$unset = updates.$unset || {};
+          updates.$unset[`social.${platform}`] = "";
+          delete updates.social[platform];
+        }
+      });
+      if (Object.keys(updates.social).length === 0) delete updates.social;
+    }
+
     const user = await User.findByIdAndUpdate(req.user.id, updates, {
       new: true,
       runValidators: true,
@@ -52,6 +64,7 @@ exports.updateMyProfile = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
 
 // Change password
 exports.changePassword = async (req, res) => {

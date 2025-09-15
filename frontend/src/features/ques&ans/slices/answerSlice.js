@@ -3,12 +3,19 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ Normalize anonymous answers
+// ✅ Normalize answer so `author` is always consistent
 const normalizeAnswer = (a) => {
+  const authorObj = a.author || {};
   return {
     ...a,
-    authorId: a.author?._id || a.authorId || null,
-    authorName: a.isAnonymous ? "Anonymous User" : (a.author?.name || a.authorName),
+    author: {
+      _id: authorObj._id || a.authorId || null,
+      name: authorObj.name || a.authorName || "Anonymous User",
+      avatar: authorObj.avatar || a.authorAvatar || null,
+    },
+    authorId: authorObj._id || a.authorId || null,
+    authorName: authorObj.name || a.authorName || "Anonymous User",
+    authorAvatar: authorObj.avatar || a.authorAvatar || null,
   };
 };
 
@@ -17,10 +24,14 @@ export const fetchAnswers = createAsyncThunk(
   "answers/fetchByQuestion",
   async (questionId, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/answers/get-answers/${questionId}`);
+      const res = await axios.get(
+        `${BASE_URL}/api/answers/get-answers/${questionId}`
+      );
       return res.data.answers.map(normalizeAnswer);
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch answers");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch answers"
+      );
     }
   }
 );
@@ -37,7 +48,9 @@ export const createAnswer = createAsyncThunk(
       );
       return normalizeAnswer(res.data.answer);
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to create answer");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to create answer"
+      );
     }
   }
 );
@@ -54,7 +67,9 @@ export const updateAnswer = createAsyncThunk(
       );
       return normalizeAnswer(res.data.answer);
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to update answer");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to update answer"
+      );
     }
   }
 );
@@ -69,7 +84,9 @@ export const deleteAnswer = createAsyncThunk(
       });
       return id;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to delete answer");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to delete answer"
+      );
     }
   }
 );
@@ -99,7 +116,9 @@ const answerSlice = createSlice({
     },
     socketAnswersClearedForQuestion: (state, action) => {
       const qid = action.payload;
-      state.list = state.list.filter((a) => String(a.question) !== String(qid));
+      state.list = state.list.filter(
+        (a) => String(a.question) !== String(qid)
+      );
     },
   },
   extraReducers: (builder) => {

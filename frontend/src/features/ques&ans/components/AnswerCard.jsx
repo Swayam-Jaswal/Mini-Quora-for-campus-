@@ -11,10 +11,13 @@ import { Download } from "lucide-react";
 export default function AnswerCard({
   id,
   body,
+  author,
+  authorId,
+  authorName,
+  authorAvatar,
+  isAnonymous,
   attachments = [],
   date,
-  authorId,
-  authorName, // ✅ always normalized in slice
 }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -27,8 +30,7 @@ export default function AnswerCard({
   const menuRef = useRef(null);
 
   const userId =
-    user?._id || user?.id || user?.userId || user?.user?.id || user?.user?._id;
-
+    user?._id || user?.id || user?.userId || user?.user?._id || user?.user?.id;
   const isAuthor =
     Boolean(userId && authorId) && String(userId) === String(authorId);
 
@@ -61,6 +63,7 @@ export default function AnswerCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // File placeholder icons
   const getFileIcon = (url = "") => {
     const lower = url.toLowerCase();
     if (lower.endsWith(".pdf")) return "/icons/pdf.png";
@@ -82,9 +85,29 @@ export default function AnswerCard({
     <div className="flex-1 rounded-lg p-3 border-b border-gray-700 group transition">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm font-medium text-white">{authorName}</p>
+          {/* Avatar + Author */}
+          <div className="flex items-center gap-2 mb-1">
+            {isAnonymous ? (
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                <span className="text-xs text-gray-300">A</span>
+              </div>
+            ) : (
+              <img
+                src={author?.avatar || authorAvatar || "/default-avatar.png"}
+                alt="avatar"
+                className="w-8 h-8 rounded-full object-cover border border-gray-600"
+                onError={(e) => (e.target.src = "/default-avatar.png")}
+              />
+            )}
+            <p className="text-sm font-medium text-white">
+              {isAnonymous ? "Anonymous User" : author?.name || authorName}
+            </p>
+          </div>
+
+          {/* Body */}
           <p className="text-gray-200 mt-1">{body}</p>
 
+          {/* Attachments */}
           {attachments?.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-3">
               {attachments.map((att, i) =>
@@ -137,6 +160,7 @@ export default function AnswerCard({
           )}
         </div>
 
+        {/* Menu */}
         <div className="relative" ref={menuRef}>
           <button
             className="p-2 rounded-full text-gray-400 hover:bg-[#374151] hover:text-white opacity-0 group-hover:opacity-100 transition"
@@ -182,12 +206,14 @@ export default function AnswerCard({
         </div>
       </div>
 
+      {/* Date */}
       <div className="flex justify-start mt-2">
         <p className="text-xs text-gray-400">
           <TimeAgo date={date} />
         </p>
       </div>
 
+      {/* Image preview modal */}
       {previewImage && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
@@ -201,6 +227,7 @@ export default function AnswerCard({
         </div>
       )}
 
+      {/* Edit modal */}
       <AnswerModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -210,6 +237,7 @@ export default function AnswerCard({
         mode="edit"
       />
 
+      {/* Confirm delete */}
       <ConfirmModal
         open={confirmOpen}
         title="Delete Answer"

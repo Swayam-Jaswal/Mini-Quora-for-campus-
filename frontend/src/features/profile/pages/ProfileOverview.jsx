@@ -4,144 +4,148 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { updateProfile } from "../slices/profileSlice";
 import ProfileEditModal from "../components/ProfileEditModal";
-import ProfileAvatarUpload from "../components/ProfileAvtarUpload";
+import SkillsEditModal from "../components/SkillsEditModal";
+
+// ✅ shared icons
+import { uiIcons } from "../utils/Icons";
+import { FaUser, FaCode, FaChartBar, FaUsers } from "react-icons/fa";
 
 export default function ProfileOverview({ profile }) {
   const dispatch = useDispatch();
-  const [editingField, setEditingField] = useState(null); // "bio" | "skills" | "social"
+  const [editingField, setEditingField] = useState(null);
   const [form, setForm] = useState({
-    name: profile.name,
     bio: profile.bio || "",
     skills: profile.skills || [],
     social: profile.social || {},
-    avatar: profile.avatar,
   });
 
   const handleSave = (field, value) => {
     setForm({ ...form, [field]: value });
-    dispatch(updateProfile({ ...form, [field]: value }));
+    dispatch(updateProfile({ [field]: value }));
     setEditingField(null);
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Profile Header */}
-      <div className="bg-black/30 p-6 rounded-2xl flex items-center gap-6 shadow-lg">
-        <ProfileAvatarUpload
-          current={form.avatar}
-          onChange={(url) => handleSave("avatar", url)}
-        />
-        <div>
-          <h2 className="text-2xl font-bold">{form.name}</h2>
-          <p className="text-gray-400">{profile.email}</p>
-          <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs bg-blue-600/30 text-blue-300">
-            {profile.role}
-          </span>
-        </div>
-      </div>
+  const AddIcon = uiIcons.add;
+  const EditIcon = uiIcons.edit;
 
+  return (
+    <div className="space-y-6">
       {/* Bio */}
-      <div className="bg-black/20 p-6 rounded-2xl shadow-lg">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold">Bio</h3>
+      <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/10 transition hover:border-blue-500/30">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <FaUser className="text-blue-400" /> About Me
+          </h3>
           <button
             onClick={() => setEditingField("bio")}
-            className="text-sm text-blue-400 hover:underline"
+            className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 transition"
           >
-            {form.bio ? "Edit" : "Add Bio"}
+            {form.bio ? (
+              <>
+                <EditIcon size={14} /> Edit
+              </>
+            ) : (
+              <>
+                <AddIcon size={14} /> Add
+              </>
+            )}
           </button>
         </div>
-        <p className="text-gray-300">{form.bio || "No bio added yet."}</p>
+        {form.bio ? (
+          <p className="text-gray-200 leading-relaxed">{form.bio}</p>
+        ) : (
+          <p className="text-gray-500 italic">
+            No bio yet. Click add to tell us about yourself.
+          </p>
+        )}
       </div>
 
       {/* Skills */}
-      <div className="bg-black/20 p-6 rounded-2xl shadow-lg">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold">Skills</h3>
+      <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/10 transition hover:border-blue-500/30">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <FaCode className="text-green-400" /> Skills
+          </h3>
           <button
             onClick={() => setEditingField("skills")}
-            className="text-sm text-blue-400 hover:underline"
+            className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg bg-green-600/20 hover:bg-green-600/30 text-green-400 transition"
           >
-            {form.skills?.length ? "Edit" : "Add Skills"}
+            {form.skills?.length ? (
+              <>
+                <EditIcon size={14} /> Edit
+              </>
+            ) : (
+              <>
+                <AddIcon size={14} /> Add
+              </>
+            )}
           </button>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {form.skills?.length ? (
-            form.skills.map((s, i) => (
-              <span key={i} className="px-3 py-1 rounded-full bg-gray-700 text-sm">
+        {form.skills?.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {form.skills.map((s, i) => (
+              <span
+                key={i}
+                className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-200 border border-blue-500/30 text-sm shadow-sm"
+              >
                 {s}
               </span>
-            ))
-          ) : (
-            <p className="text-gray-300">No skills added yet.</p>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 italic">No skills yet. Click add to list your skills.</p>
+        )}
       </div>
 
-      {/* Social */}
-      <div className="bg-black/20 p-6 rounded-2xl shadow-lg">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold">Social Links</h3>
-          <button
-            onClick={() => setEditingField("social")}
-            className="text-sm text-blue-400 hover:underline"
-          >
-            Edit
-          </button>
-        </div>
-        <ul className="space-y-1 text-gray-300">
-          {["github", "linkedin", "twitter"].map((s) => (
-            <li key={s}>
-              <span className="capitalize">{s}: </span>
-              {form.social[s] ? (
-                <a
-                  href={form.social[s]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline"
-                >
-                  {form.social[s]}
-                </a>
-              ) : (
-                <span className="text-gray-500">Not added</span>
-              )}
-            </li>
-          ))}
-        </ul>
+      {/* Stats (placeholder) */}
+      <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/10">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+          <FaChartBar className="text-yellow-400" /> Stats
+        </h3>
+        <p className="text-gray-500 italic">User stats will be shown here.</p>
       </div>
 
-      {/* Profile Edit Modal */}
-      <ProfileEditModal
-        open={!!editingField}
-        onClose={() => setEditingField(null)}
-        title={
-          editingField === "bio"
-            ? "Edit Bio"
-            : editingField === "skills"
-            ? "Edit Skills (comma separated)"
-            : "Edit Social Links (JSON format)"
-        }
-        initialValue={
-          editingField === "bio"
-            ? form.bio
-            : editingField === "skills"
-            ? form.skills.join(", ")
-            : JSON.stringify(form.social, null, 2)
-        }
-        onSave={(val) => {
-          if (editingField === "skills") {
-            handleSave("skills", val.split(",").map((s) => s.trim()).filter(Boolean));
-          } else if (editingField === "social") {
-            try {
-              handleSave("social", JSON.parse(val));
-            } catch {
-              toast.error("Invalid JSON for social links");
-            }
-          } else {
-            handleSave(editingField, val);
+      {/* Contributions (placeholder) */}
+      <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/10">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+          <FaUsers className="text-pink-400" /> User Contribution
+        </h3>
+        <p className="text-gray-500 italic">User contributions will be shown here.</p>
+      </div>
+
+      {/* Skills Modal */}
+      {editingField === "skills" && (
+        <SkillsEditModal
+          open={true}
+          onClose={() => setEditingField(null)}
+          initialSkills={form.skills}
+          onSave={(skills) => handleSave("skills", skills)}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {editingField && editingField !== "skills" && (
+        <ProfileEditModal
+          open={!!editingField}
+          onClose={() => setEditingField(null)}
+          title={editingField === "bio" ? "Edit Bio" : "Edit Social Links (JSON format)"}
+          initialValue={
+            editingField === "bio" ? form.bio : JSON.stringify(form.social, null, 2)
           }
-        }}
-      />
+          onSave={(val) => {
+            if (editingField === "social") {
+              try {
+                const parsed = JSON.parse(val);
+                handleSave("social", parsed);
+              } catch {
+                toast.error("Invalid JSON for social links");
+              }
+            } else {
+              handleSave(editingField, val);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

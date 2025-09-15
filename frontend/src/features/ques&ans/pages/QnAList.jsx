@@ -72,7 +72,7 @@ export default function QnaPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#29323C] to-[#485563] text-white">
       <Navbar />
-      <BackButton/>
+      <BackButton />
       <main className="flex-1 p-6 flex gap-6 max-w-7xl mx-auto w-full">
         <QuickLinks />
         <section className="flex-1 bg-black/20 rounded-2xl p-6 shadow-lg">
@@ -97,8 +97,11 @@ export default function QnaPage() {
                 title={q.title}
                 body={q.body}
                 tags={q.tags}
+                author={q.author}
                 authorId={q.author?._id}
                 authorName={q.author?.name}
+                authorAvatar={q.author?.avatar}
+                isAnonymous={q.isAnonymous}
                 createdAt={q.createdAt}
                 answersCount={q.answersCount}
               />

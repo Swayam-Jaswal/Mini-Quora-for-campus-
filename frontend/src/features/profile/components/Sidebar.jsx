@@ -9,13 +9,15 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <aside className="w-64 bg-black/30 border-r border-gray-700 p-4 space-y-2">
+    <aside className="w-64 mr-4 -ml-2 bg-black/40 rounded-xl shadow-lg p-4 space-y-2 h-fit">
       {tabs.map((t) => (
         <button
           key={t.id}
           onClick={() => setActiveTab(t.id)}
           className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-left transition ${
-            activeTab === t.id ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700"
+            activeTab === t.id
+              ? "bg-blue-600 text-white"
+              : "text-gray-300 hover:bg-gray-700"
           }`}
         >
           {t.icon}

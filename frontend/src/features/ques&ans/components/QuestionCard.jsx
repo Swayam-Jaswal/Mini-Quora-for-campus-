@@ -13,10 +13,13 @@ export default function QuestionCard({
   title,
   body,
   tags,
+  author,
   authorId,
+  authorName,
+  authorAvatar,
+  isAnonymous,
   answersCount = 0,
   createdAt,
-  authorName, // ✅ Always normalized in slice
   showFooter = true,
 }) {
   const navigate = useNavigate();
@@ -51,16 +54,28 @@ export default function QuestionCard({
     setMenuOpen(false);
   };
 
-  const isAuthor = user?.id === authorId;
+  const userId =
+    user?._id || user?.id || user?.userId || user?.user?._id || user?.user?.id;
+  const isAuthor = userId && authorId && String(userId) === String(authorId);
 
   return (
     <div className="bg-gray-900/60 border border-gray-700 p-5 rounded-2xl shadow-md mb-5">
       <div className="flex justify-between items-start mb-3">
+        {/* Avatar + Author */}
         <div className="flex items-center gap-3">
-          <UserCircle2 className="w-9 h-9 text-gray-400" />
+          {isAnonymous ? (
+            <UserCircle2 className="w-9 h-9 text-gray-400" />
+          ) : (
+            <img
+              src={author?.avatar || authorAvatar || "/default-avatar.png"}
+              alt="avatar"
+              className="w-9 h-9 rounded-full object-cover border border-gray-600"
+              onError={(e) => (e.target.src = "/default-avatar.png")}
+            />
+          )}
           <div>
             <h4 className="text-sm font-semibold text-white">
-              {isAuthor ? "You" : authorName}
+              {isAnonymous ? "Anonymous User" : isAuthor ? "You" : author?.name || authorName}
             </h4>
             <p className="text-xs text-gray-400">
               Asked <TimeAgo date={createdAt} />
@@ -68,6 +83,7 @@ export default function QuestionCard({
           </div>
         </div>
 
+        {/* Menu */}
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -112,6 +128,7 @@ export default function QuestionCard({
         </div>
       </div>
 
+      {/* Title */}
       <h3
         onClick={() => navigate(`/qna/${id}`)}
         className="text-xl font-bold text-blue-400 cursor-pointer hover:underline mb-2"
@@ -119,8 +136,10 @@ export default function QuestionCard({
         {title}
       </h3>
 
+      {/* Body */}
       <p className="text-gray-300 text-sm mb-3 line-clamp-3">{body}</p>
 
+      {/* Tags */}
       {tags?.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {tags.map((tag, i) => (
@@ -134,6 +153,7 @@ export default function QuestionCard({
         </div>
       )}
 
+      {/* Footer */}
       {showFooter && (
         <div className="flex justify-between items-center text-sm border-t border-gray-700 pt-3">
           <button

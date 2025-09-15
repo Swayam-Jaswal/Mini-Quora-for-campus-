@@ -21,7 +21,7 @@ const createQuestion = async (req, res) => {
       author: req.user.id,
     });
     await question.save();
-    await question.populate("author", "_id name email role");
+    await question.populate("author", "_id name email role avatar");
 
     const obj = maskAuthor(question);
 
@@ -42,7 +42,7 @@ const createQuestion = async (req, res) => {
 const getAllQuestions = async (req, res) => {
   try {
     const questions = await Question.find()
-      .populate("author", "_id name email role")
+      .populate("author", "_id name email role avatar")
       .sort({ createdAt: -1 });
 
     const questionsWithCount = await Promise.all(
@@ -69,7 +69,7 @@ const getQuestionById = async (req, res) => {
 
     const question = await Question.findById(id).populate(
       "author",
-      "_id name email role"
+      "_id name email role avatar"
     );
     if (!question)
       return res.status(404).json({ message: "Question not found" });
@@ -113,7 +113,7 @@ const updateQuestion = async (req, res) => {
     }
 
     await question.save();
-    await question.populate("author", "_id name email role");
+    await question.populate("author", "_id name email role avatar");
 
     const obj = maskAuthor(question);
 

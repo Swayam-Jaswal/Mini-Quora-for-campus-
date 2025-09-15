@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema({
   social: {
     github: { type: String, default: "" },
     linkedin: { type: String, default: "" },
-    twitter: { type: String, default: "" },
+    instagram: { type: String, default: "" },
   },
   anonymousMode: {
     type: Boolean,

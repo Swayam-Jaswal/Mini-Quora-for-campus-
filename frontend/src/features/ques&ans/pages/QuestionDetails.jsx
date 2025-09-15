@@ -20,7 +20,7 @@ import AnswerCard from "../components/AnswerCard";
 import AnswerForm from "../components/AnswerForm";
 import Navbar from "../../../components/layout/Navbar";
 import BackButton from "../../../components/common/BackButton";
-import { socket } from "../../../app/socket"; // ✅ updated import
+import { socket } from "../../../app/socket";
 
 export default function QuestionDetailsPage() {
   const { id } = useParams();
@@ -98,8 +98,11 @@ export default function QuestionDetailsPage() {
               title={question.title}
               body={question.body}
               tags={question.tags}
+              author={question.author}              // ✅ pass full author object
               authorId={question.author?._id}
               authorName={question.author?.name}
+              authorAvatar={question.author?.avatar} // ✅ pass avatar
+              isAnonymous={question.isAnonymous}
               createdAt={question.createdAt}
               showFooter={false}
             />
@@ -126,7 +129,10 @@ export default function QuestionDetailsPage() {
                   <AnswerCard
                     id={a._id}
                     body={a.body}
-                    author={a.author}
+                    author={a.author}               // ✅ pass full author object
+                    authorId={a.author?._id}
+                    authorName={a.author?.name}
+                    authorAvatar={a.author?.avatar} // ✅ pass avatar
                     isAnonymous={a.isAnonymous}
                     attachments={a.attachments}
                     date={a.createdAt}

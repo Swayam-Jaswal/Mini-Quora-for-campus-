@@ -3,12 +3,19 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ Normalizer ensures anonymous always shows correctly
+// ✅ Normalize question so `author` is always consistent
 const normalizeQuestion = (q) => {
+  const authorObj = q.author || {};
   return {
     ...q,
-    authorId: q.author?._id || q.authorId || null,
-    authorName: q.isAnonymous ? "Anonymous User" : (q.author?.name || q.authorName),
+    author: {
+      _id: authorObj._id || q.authorId || null,
+      name: authorObj.name || q.authorName || "Anonymous User",
+      avatar: authorObj.avatar || q.authorAvatar || null,
+    },
+    authorId: authorObj._id || q.authorId || null,
+    authorName: authorObj.name || q.authorName || "Anonymous User",
+    authorAvatar: authorObj.avatar || q.authorAvatar || null,
   };
 };
 
@@ -17,10 +24,14 @@ export const fetchQuestions = createAsyncThunk(
   "questions/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/questions/get-all-questions`);
+      const res = await axios.get(
+        `${BASE_URL}/api/questions/get-all-questions`
+      );
       return res.data.questions.map(normalizeQuestion);
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch questions");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch questions"
+      );
     }
   }
 );
@@ -30,10 +41,14 @@ export const fetchQuestionById = createAsyncThunk(
   "questions/fetchById",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/questions/get-question/${id}`);
+      const res = await axios.get(
+        `${BASE_URL}/api/questions/get-question/${id}`
+      );
       return normalizeQuestion(res.data.question);
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch question");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch question"
+      );
     }
   }
 );
@@ -48,7 +63,9 @@ export const deleteQuestion = createAsyncThunk(
       });
       return id;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to delete question");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to delete question"
+      );
     }
   }
 );
@@ -65,7 +82,9 @@ export const updateQuestion = createAsyncThunk(
       );
       return normalizeQuestion(res.data.question);
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to update question");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to update question"
+      );
     }
   }
 );
@@ -82,7 +101,9 @@ export const createQuestion = createAsyncThunk(
       );
       return normalizeQuestion({ ...res.data.question, answersCount: 0 });
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to create question");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to create question"
+      );
     }
   }
 );
@@ -116,7 +137,9 @@ const questionSlice = createSlice({
     socketIncrementAnswersCount: (state, action) => {
       const { questionId, delta } = action.payload;
       state.list = state.list.map((q) =>
-        q._id === questionId ? { ...q, answersCount: (q.answersCount || 0) + delta } : q
+        q._id === questionId
+          ? { ...q, answersCount: (q.answersCount || 0) + delta }
+          : q
       );
       if (state.current && state.current._id === questionId) {
         state.current = {
@@ -153,11 +176,14 @@ const questionSlice = createSlice({
       .addCase(deleteQuestion.fulfilled, (state, action) => {
         state.loading = false;
         state.list = state.list.filter((q) => q._id !== action.payload);
-        if (state.current && state.current._id === action.payload) state.current = null;
+        if (state.current && state.current._id === action.payload)
+          state.current = null;
       })
       .addCase(updateQuestion.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = state.list.map((q) => (q._id === action.payload._id ? action.payload : q));
+        state.list = state.list.map((q) =>
+          q._id === action.payload._id ? action.payload : q
+        );
         if (state.current && state.current._id === action.payload._id) {
           state.current = action.payload;
         }
