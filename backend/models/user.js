@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
   },
   verificationTokenHash: String,
   verificationExpires: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 
   bio: {
     type: String,
@@ -62,5 +64,5 @@ userSchema.methods.createVerificationToken = function () {
   return token;
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 module.exports = User;

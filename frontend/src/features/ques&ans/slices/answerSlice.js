@@ -3,34 +3,46 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// ✅ Normalize anonymous answers
+const normalizeAnswer = (a) => {
+  return {
+    ...a,
+    authorId: a.author?._id || a.authorId || null,
+    authorName: a.isAnonymous ? "Anonymous User" : (a.author?.name || a.authorName),
+  };
+};
+
+// 🔹 Fetch answers for a question
 export const fetchAnswers = createAsyncThunk(
   "answers/fetchByQuestion",
   async (questionId, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${BASE_URL}/api/answers/get-answers/${questionId}`);
-      return res.data.answers;
+      return res.data.answers.map(normalizeAnswer);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch answers");
     }
   }
 );
 
+// 🔹 Create answer
 export const createAnswer = createAsyncThunk(
   "answers/create",
-  async ({ questionId, body, attachments = [], isAnonymous = false }, { rejectWithValue }) => {
+  async ({ questionId, body, attachments = [] }, { rejectWithValue }) => {
     try {
       const res = await axios.post(
         `${BASE_URL}/api/answers/create-answer/${questionId}`,
-        { body, attachments, isAnonymous },
+        { body, attachments },
         { withCredentials: true }
       );
-      return res.data.answer;
+      return normalizeAnswer(res.data.answer);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to create answer");
     }
   }
 );
 
+// 🔹 Update answer
 export const updateAnswer = createAsyncThunk(
   "answers/update",
   async ({ id, body, attachments }, { rejectWithValue }) => {
@@ -40,13 +52,14 @@ export const updateAnswer = createAsyncThunk(
         { body, attachments },
         { withCredentials: true }
       );
-      return res.data.answer;
+      return normalizeAnswer(res.data.answer);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to update answer");
     }
   }
 );
 
+// 🔹 Delete answer
 export const deleteAnswer = createAsyncThunk(
   "answers/delete",
   async (id, { rejectWithValue }) => {
@@ -73,11 +86,11 @@ const answerSlice = createSlice({
       state.list = [];
     },
     socketAnswerCreated: (state, action) => {
-      const a = action.payload;
+      const a = normalizeAnswer(action.payload);
       if (!state.list.find((x) => x._id === a._id)) state.list.unshift(a);
     },
     socketAnswerUpdated: (state, action) => {
-      const a = action.payload;
+      const a = normalizeAnswer(action.payload);
       state.list = state.list.map((x) => (x._id === a._id ? a : x));
     },
     socketAnswerDeleted: (state, action) => {

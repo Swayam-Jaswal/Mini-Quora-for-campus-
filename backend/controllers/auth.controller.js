@@ -1,8 +1,8 @@
-const User = require('../models/User');
+const User = require('../models/user');
 const AdminCode = require('../models/adminCode');
 const ModeratorCode = require('../models/moderatorCode');
 const {emailRegex,passwordRegex} = require('../utils/validator');
-const {sendVerificationEmail} = require("../utils/sendEmail");
+const {sendVerificationEmail,sendPasswordResetEmail} = require("../utils/sendEmail");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require("crypto");
@@ -177,6 +177,61 @@ const login = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // generate token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.passwordResetToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 min expiry
+    await user.save();
+
+    const resetLink = `${process.env.FRONTEND_BASE_URL}/reset-password?token=${resetToken}`;
+
+    await sendPasswordResetEmail(user.email, resetLink);
+
+    return res.status(200).json({ message: "Password reset link sent to your email" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    const hashed = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashed,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    // update password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 const me = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -200,4 +255,4 @@ const logout = async (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-module.exports = {signup,verifyEmail,resendVerificationEmail,login,me,logout};
+module.exports = {signup,verifyEmail,resendVerificationEmail,login,forgotPassword,resetPassword,me,logout};

@@ -11,10 +11,10 @@ import { Download } from "lucide-react";
 export default function AnswerCard({
   id,
   body,
-  author,
-  isAnonymous,
   attachments = [],
   date,
+  authorId,
+  authorName, // ✅ always normalized in slice
 }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -28,8 +28,7 @@ export default function AnswerCard({
 
   const userId =
     user?._id || user?.id || user?.userId || user?.user?.id || user?.user?._id;
-  const authorId =
-    typeof author === "string" ? author : author?._id || author?.id;
+
   const isAuthor =
     Boolean(userId && authorId) && String(userId) === String(authorId);
 
@@ -62,7 +61,6 @@ export default function AnswerCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ File placeholder icons
   const getFileIcon = (url = "") => {
     const lower = url.toLowerCase();
     if (lower.endsWith(".pdf")) return "/icons/pdf.png";
@@ -73,7 +71,6 @@ export default function AnswerCard({
     return "/icons/document.png";
   };
 
-  // ✅ Force download link for Cloudinary
   const getDownloadUrl = (url = "") => {
     if (!url) return url;
     return url.includes("/upload/")
@@ -85,9 +82,7 @@ export default function AnswerCard({
     <div className="flex-1 rounded-lg p-3 border-b border-gray-700 group transition">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm font-medium text-white">
-            {isAnonymous ? "Anonymous" : author?.name}
-          </p>
+          <p className="text-sm font-medium text-white">{authorName}</p>
           <p className="text-gray-200 mt-1">{body}</p>
 
           {attachments?.length > 0 && (
@@ -127,8 +122,6 @@ export default function AnswerCard({
                         className="w-full h-full object-cover"
                       />
                     </a>
-
-                    {/* ✅ Download button for docs */}
                     <a
                       href={getDownloadUrl(att.url)}
                       download

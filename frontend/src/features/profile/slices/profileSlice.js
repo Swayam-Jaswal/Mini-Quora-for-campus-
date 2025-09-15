@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../../app/api";
 
+// 🔹 Fetch logged-in user profile
 export const fetchProfile = createAsyncThunk(
   "profile/fetch",
   async (_, { rejectWithValue }) => {
@@ -16,11 +17,13 @@ export const fetchProfile = createAsyncThunk(
   }
 );
 
+// 🔹 Update logged-in user profile
 export const updateProfile = createAsyncThunk(
   "profile/update",
   async (updates, { rejectWithValue }) => {
     try {
-      const res = await api.put("/api/users", updates);
+      // ✅ fixed endpoint mismatch
+      const res = await api.put("/api/users/me", updates);
       return res.data.data;
     } catch (err) {
       return rejectWithValue(
@@ -36,8 +39,10 @@ const profileSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // fetchProfile
       .addCase(fetchProfile.pending, (s) => {
         s.loading = true;
+        s.error = null;
       })
       .addCase(fetchProfile.fulfilled, (s, a) => {
         s.loading = false;
@@ -47,8 +52,10 @@ const profileSlice = createSlice({
         s.loading = false;
         s.error = a.payload;
       })
+      // updateProfile
       .addCase(updateProfile.pending, (s) => {
         s.loading = true;
+        s.error = null;
       })
       .addCase(updateProfile.fulfilled, (s, a) => {
         s.loading = false;

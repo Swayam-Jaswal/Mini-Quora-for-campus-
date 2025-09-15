@@ -1,4 +1,3 @@
-// src/features/profile/pages/ProfileSettings.jsx
 import { useDispatch } from "react-redux";
 import { updateProfile } from "../slices/profileSlice";
 import { useState } from "react";
@@ -10,40 +9,63 @@ export default function ProfileSettings({ profile }) {
     privateProfile: profile.privateProfile,
   });
 
-  const handleSave = () => {
-    dispatch(updateProfile(settings));
+  const handleToggle = (field) => {
+    const newValue = !settings[field];
+    const updated = { ...settings, [field]: newValue };
+    setSettings(updated);
+    // 🔹 update backend immediately
+    dispatch(updateProfile({ [field]: newValue }));
   };
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
 
-      <div className="space-y-4">
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={settings.anonymousMode}
-            onChange={(e) => setSettings({ ...settings, anonymousMode: e.target.checked })}
-          />
-          Enable Anonymous Mode
-        </label>
+      <div className="space-y-6">
+        {/* Anonymous Mode */}
+        <div className="flex items-center justify-between p-4 bg-black/20 rounded-xl">
+          <div>
+            <h3 className="font-semibold">Anonymous Mode</h3>
+            <p className="text-sm text-gray-400">
+              Hide your name and profile in public areas.
+            </p>
+          </div>
+          <button
+            onClick={() => handleToggle("anonymousMode")}
+            className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
+              settings.anonymousMode ? "bg-blue-600" : "bg-gray-600"
+            }`}
+          >
+            <span
+              className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform ${
+                settings.anonymousMode ? "translate-x-6" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
 
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={settings.privateProfile}
-            onChange={(e) => setSettings({ ...settings, privateProfile: e.target.checked })}
-          />
-          Make Profile Private
-        </label>
+        {/* Private Profile */}
+        <div className="flex items-center justify-between p-4 bg-black/20 rounded-xl">
+          <div>
+            <h3 className="font-semibold">Private Profile</h3>
+            <p className="text-sm text-gray-400">
+              Restrict access to your profile from other users.
+            </p>
+          </div>
+          <button
+            onClick={() => handleToggle("privateProfile")}
+            className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
+              settings.privateProfile ? "bg-blue-600" : "bg-gray-600"
+            }`}
+          >
+            <span
+              className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform ${
+                settings.privateProfile ? "translate-x-6" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
       </div>
-
-      <button
-        onClick={handleSave}
-        className="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white"
-      >
-        Save Settings
-      </button>
     </div>
   );
 }

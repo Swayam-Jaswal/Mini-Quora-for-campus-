@@ -3,30 +3,42 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// ✅ Normalizer ensures anonymous always shows correctly
+const normalizeQuestion = (q) => {
+  return {
+    ...q,
+    authorId: q.author?._id || q.authorId || null,
+    authorName: q.isAnonymous ? "Anonymous User" : (q.author?.name || q.authorName),
+  };
+};
+
+// 🔹 Fetch all questions
 export const fetchQuestions = createAsyncThunk(
   "questions/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${BASE_URL}/api/questions/get-all-questions`);
-      return res.data.questions;
+      return res.data.questions.map(normalizeQuestion);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch questions");
     }
   }
 );
 
+// 🔹 Fetch single question by ID
 export const fetchQuestionById = createAsyncThunk(
   "questions/fetchById",
   async (id, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${BASE_URL}/api/questions/get-question/${id}`);
-      return res.data.question;
+      return normalizeQuestion(res.data.question);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch question");
     }
   }
 );
 
+// 🔹 Delete question
 export const deleteQuestion = createAsyncThunk(
   "questions/delete",
   async (id, { rejectWithValue }) => {
@@ -41,6 +53,7 @@ export const deleteQuestion = createAsyncThunk(
   }
 );
 
+// 🔹 Update question
 export const updateQuestion = createAsyncThunk(
   "questions/update",
   async ({ id, data }, { rejectWithValue }) => {
@@ -50,13 +63,14 @@ export const updateQuestion = createAsyncThunk(
         data,
         { withCredentials: true }
       );
-      return res.data.question;
+      return normalizeQuestion(res.data.question);
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to update question");
     }
   }
 );
 
+// 🔹 Create new question
 export const createQuestion = createAsyncThunk(
   "questions/create",
   async (data, { rejectWithValue }) => {
@@ -66,7 +80,7 @@ export const createQuestion = createAsyncThunk(
         data,
         { withCredentials: true }
       );
-      return { ...res.data.question, answersCount: 0 };
+      return normalizeQuestion({ ...res.data.question, answersCount: 0 });
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to create question");
     }
@@ -86,11 +100,11 @@ const questionSlice = createSlice({
       state.current = null;
     },
     socketQuestionCreated: (state, action) => {
-      const q = action.payload;
+      const q = normalizeQuestion(action.payload);
       if (!state.list.find((x) => x._id === q._id)) state.list.unshift(q);
     },
     socketQuestionUpdated: (state, action) => {
-      const q = action.payload;
+      const q = normalizeQuestion(action.payload);
       state.list = state.list.map((x) => (x._id === q._id ? q : x));
       if (state.current && state.current._id === q._id) state.current = q;
     },
@@ -126,32 +140,15 @@ const questionSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(fetchQuestionById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
       .addCase(fetchQuestionById.fulfilled, (state, action) => {
         state.loading = false;
         state.current = action.payload;
       })
-      .addCase(fetchQuestionById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(createQuestion.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
       .addCase(createQuestion.fulfilled, (state, action) => {
         state.loading = false;
-        // ✅ Prevent duplicates (socket + local add)
         if (!state.list.find((q) => q._id === action.payload._id)) {
           state.list.unshift(action.payload);
         }
-      })
-      .addCase(createQuestion.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
       })
       .addCase(deleteQuestion.fulfilled, (state, action) => {
         state.loading = false;

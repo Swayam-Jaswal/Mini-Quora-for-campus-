@@ -16,7 +16,7 @@ export default function QuestionCard({
   authorId,
   answersCount = 0,
   createdAt,
-  authorName,
+  authorName, // ✅ Always normalized in slice
   showFooter = true,
 }) {
   const navigate = useNavigate();
@@ -60,7 +60,7 @@ export default function QuestionCard({
           <UserCircle2 className="w-9 h-9 text-gray-400" />
           <div>
             <h4 className="text-sm font-semibold text-white">
-              {isAuthor ? "You" : authorName || "Anonymous User"}
+              {isAuthor ? "You" : authorName}
             </h4>
             <p className="text-xs text-gray-400">
               Asked <TimeAgo date={createdAt} />

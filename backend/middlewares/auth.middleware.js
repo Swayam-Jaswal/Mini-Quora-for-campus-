@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
 const roleHierarchy = {
   superadmin: 3,
@@ -7,7 +8,7 @@ const roleHierarchy = {
   user: 0,
 };
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   try {
     let token = null;
 
@@ -23,7 +24,16 @@ const verifyToken = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    // ✅ Fetch fresh user from DB (to include anonymousMode, privateProfile, etc.)
+    const user = await User.findById(decoded.id || decoded._id).select(
+      "-password -verificationTokenHash -verificationExpires"
+    );
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = user; // ✅ attach full user document
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });
