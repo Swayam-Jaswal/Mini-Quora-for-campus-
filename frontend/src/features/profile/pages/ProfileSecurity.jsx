@@ -1,6 +1,8 @@
+// src/features/profile/pages/ProfileSecurity.jsx
 import React, { useState } from "react";
 import api from "../../../app/api";
 import { toast } from "react-toastify";
+import FadeIn from "../components/FadeIn";
 
 export default function ProfileSecurity() {
   const [form, setForm] = useState({
@@ -32,43 +34,45 @@ export default function ProfileSecurity() {
   };
 
   return (
-    <div className="bg-black/20 p-6 rounded-2xl">
-      <h3 className="text-xl font-semibold mb-4">Security</h3>
-      <div className="grid grid-cols-1 gap-3 max-w-lg">
-        <input
-          type="password"
-          name="currentPassword"
-          placeholder="Current password"
-          value={form.currentPassword}
-          onChange={handleChange}
-          className="p-3 rounded bg-gray-800"
-        />
-        <input
-          type="password"
-          name="newPassword"
-          placeholder="New password"
-          value={form.newPassword}
-          onChange={handleChange}
-          className="p-3 rounded bg-gray-800"
-        />
-        <input
-          type="password"
-          name="confirm"
-          placeholder="Confirm new password"
-          value={form.confirm}
-          onChange={handleChange}
-          className="p-3 rounded bg-gray-800"
-        />
-        <div className="flex justify-end">
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 rounded"
-          >
-            {loading ? "Saving..." : "Change password"}
-          </button>
+    <FadeIn>
+      <div className="bg-black/20 p-6 rounded-2xl">
+        <h3 className="text-xl font-semibold mb-4">Security</h3>
+        <div className="grid grid-cols-1 gap-3 max-w-lg">
+          <input
+            type="password"
+            name="currentPassword"
+            placeholder="Current password"
+            value={form.currentPassword}
+            onChange={handleChange}
+            className="p-3 rounded bg-gray-800"
+          />
+          <input
+            type="password"
+            name="newPassword"
+            placeholder="New password"
+            value={form.newPassword}
+            onChange={handleChange}
+            className="p-3 rounded bg-gray-800"
+          />
+          <input
+            type="password"
+            name="confirm"
+            placeholder="Confirm new password"
+            value={form.confirm}
+            onChange={handleChange}
+            className="p-3 rounded bg-gray-800"
+          />
+          <div className="flex justify-end">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 transition"
+            >
+              {loading ? "Saving..." : "Change password"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </FadeIn>
   );
 }

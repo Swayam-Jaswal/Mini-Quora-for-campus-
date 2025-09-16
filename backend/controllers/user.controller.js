@@ -20,6 +20,7 @@ exports.updateMyProfile = async (req, res) => {
     const allowed = [
       "name",
       "bio",
+      "tagline",
       "skills",
       "avatar",
       "banner",        // ✅ added banner

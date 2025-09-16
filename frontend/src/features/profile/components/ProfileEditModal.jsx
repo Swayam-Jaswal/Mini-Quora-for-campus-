@@ -1,65 +1,38 @@
 // src/features/profile/components/ProfileEditModal.jsx
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import FocusLock from "react-focus-lock";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { useDispatch, useSelector } from "react-redux";
-import { updateProfile } from "../slices/profileSlice";
 
-// ✅ Backend only allows name + bio (email not editable here)
-const schema = yup.object().shape({
-  name: yup.string().required("Name is required").min(2, "Too short"),
-  bio: yup.string().max(300, "Bio must be 300 characters or less"),
-});
-
-export default function ProfileEditModal({ open, onClose }) {
-  const dispatch = useDispatch();
+export default function ProfileEditModal({ open, onClose, field, currentValue, onSave }) {
   const openerRef = useRef(null);
-  const { data, loading, error } = useSelector((s) => s.profile);
+  const [value, setValue] = useState("");
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: { name: "", bio: "" },
-  });
-
-  // Populate form when modal opens
   useEffect(() => {
     if (open) {
       openerRef.current = document.activeElement;
-      if (data) {
-        reset({
-          name: data.name || "",
-          bio: data.bio || "",
-        });
-      }
+      setValue(currentValue || "");
     } else {
-      // restore focus
       if (openerRef.current && typeof openerRef.current.focus === "function") {
         openerRef.current.focus();
       }
     }
-  }, [open, data, reset]);
+  }, [open, currentValue]);
 
   if (!open) return null;
 
-  const onSubmit = async (values) => {
-    try {
-      await dispatch(updateProfile(values)).unwrap();
-      onClose();
-    } catch (err) {
-      console.error("Save failed", err);
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(value.trim());
+  };
+
+  const labelMap = {
+    name: "Name",
+    bio: "Bio",
+    tagline: "Tagline",
   };
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
       role="presentation"
       onClick={onClose}
     >
@@ -67,74 +40,46 @@ export default function ProfileEditModal({ open, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-profile-title"
-        className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 mx-4"
+        className="bg-gray-900 text-white rounded-2xl shadow-2xl max-w-md w-full p-6 mx-4 animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
       >
         <FocusLock returnFocus={true}>
-          <h2 id="edit-profile-title" className="text-xl font-semibold mb-4">
-            Edit Profile
+          <h2 id="edit-profile-title" className="text-xl font-semibold mb-4 text-blue-400">
+            Edit {labelMap[field] || "Field"}
           </h2>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            {/* Name */}
-            <div className="mb-4">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <input
-                id="name"
-                {...register("name")}
-                className="mt-1 block w-full border rounded px-3 py-2"
-                aria-invalid={errors.name ? "true" : "false"}
-              />
-              {errors.name && (
-                <p role="alert" className="text-sm text-red-600 mt-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            {/* Bio */}
-            <div className="mb-4">
-              <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                Bio
-              </label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {field === "bio" ? (
               <textarea
-                id="bio"
-                {...register("bio")}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
                 rows={4}
-                className="mt-1 block w-full border rounded px-3 py-2"
-                aria-invalid={errors.bio ? "true" : "false"}
+                className="w-full rounded-lg px-3 py-2 bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder={`Enter your ${labelMap[field]}`}
               />
-              {errors.bio && (
-                <p role="alert" className="text-sm text-red-600 mt-1">
-                  {errors.bio.message}
-                </p>
-              )}
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div role="alert" className="text-sm text-red-600 mb-3">
-                Failed to save: {error}
-              </div>
+            ) : (
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                className="w-full rounded-lg px-3 py-2 bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder={`Enter your ${labelMap[field]}`}
+              />
             )}
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || loading}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition"
               >
-                {loading || isSubmitting ? "Saving..." : "Save"}
+                Save
               </button>
             </div>
           </form>
