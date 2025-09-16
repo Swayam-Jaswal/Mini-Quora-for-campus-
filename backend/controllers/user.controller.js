@@ -15,7 +15,6 @@ exports.getMyProfile = async (req, res) => {
 };
 
 // Update logged-in user's profile
-// Update logged-in user's profile
 exports.updateMyProfile = async (req, res) => {
   try {
     const allowed = [
@@ -23,6 +22,7 @@ exports.updateMyProfile = async (req, res) => {
       "bio",
       "skills",
       "avatar",
+      "banner",        // ✅ added banner
       "social",
       "anonymousMode",
       "privateProfile",
@@ -64,7 +64,6 @@ exports.updateMyProfile = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
 
 // Change password
 exports.changePassword = async (req, res) => {

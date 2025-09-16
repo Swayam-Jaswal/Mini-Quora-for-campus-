@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "https://res.cloudinary.com/du30lufrc/image/upload/v1757866114/default_profile_pic_hozygj.jpg",
   },
+  banner:{
+    type: String,
+    default: "https://res.cloudinary.com/du30lufrc/image/upload/v1758014784/downloadable_banner_gennsk.png"
+  },
   skills: [{ type: String }],
   social: {
     github: { type: String, default: "" },
