@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const AdminCode = require("../models/adminCode");
 const ModeratorCode = require("../models/moderatorCode");
-const User = require("../models/User");
+const User = require("../models/user");
 
 // --- Dashboard Models ---
 const Question = require("../models/question");

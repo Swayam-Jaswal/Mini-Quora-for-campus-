@@ -5,13 +5,14 @@ import { toast } from "react-toastify";
 import { updateProfile } from "../slices/profileSlice";
 import ProfileEditModal from "../components/ProfileEditModal";
 import SkillsEditModal from "../components/SkillsEditModal";
-
-// ✅ shared icons
 import { uiIcons } from "../utils/Icons";
 import { FaUser, FaCode, FaChartBar, FaUsers } from "react-icons/fa";
 import FadeIn from "../components/FadeIn";
+import React from "react";
+import { useOutletContext } from "react-router-dom";
 
-export default function ProfileOverview({ profile }) {
+function ProfileOverview() {
+  const { profile } = useOutletContext(); // ✅ get profile from parent Outlet
   const dispatch = useDispatch();
   const [editingField, setEditingField] = useState(null);
   const [form, setForm] = useState({
@@ -38,20 +39,6 @@ export default function ProfileOverview({ profile }) {
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <FaUser className="text-blue-400" /> About Me
             </h3>
-            <button
-              onClick={() => setEditingField("bio")}
-              className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 transition"
-            >
-              {form.bio ? (
-                <>
-                  <EditIcon size={14} /> Edit
-                </>
-              ) : (
-                <>
-                  <AddIcon size={14} /> Add
-                </>
-              )}
-            </button>
           </div>
           {form.bio ? (
             <p className="text-gray-200 leading-relaxed">{form.bio}</p>
@@ -70,20 +57,6 @@ export default function ProfileOverview({ profile }) {
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <FaCode className="text-green-400" /> Skills
             </h3>
-            <button
-              onClick={() => setEditingField("skills")}
-              className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg bg-green-600/20 hover:bg-green-600/30 text-green-400 transition"
-            >
-              {form.skills?.length ? (
-                <>
-                  <EditIcon size={14} /> Edit
-                </>
-              ) : (
-                <>
-                  <AddIcon size={14} /> Add
-                </>
-              )}
-            </button>
           </div>
           {form.skills?.length > 0 ? (
             <div className="flex flex-wrap gap-2">
@@ -97,7 +70,9 @@ export default function ProfileOverview({ profile }) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">No skills yet. Click add to list your skills.</p>
+            <p className="text-gray-500 italic">
+              No skills yet. Click add to list your skills.
+            </p>
           )}
         </div>
       </FadeIn>
@@ -158,3 +133,5 @@ export default function ProfileOverview({ profile }) {
     </div>
   );
 }
+
+export default React.memo(ProfileOverview);

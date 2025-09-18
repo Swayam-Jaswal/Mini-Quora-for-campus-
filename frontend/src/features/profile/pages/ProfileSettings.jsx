@@ -9,8 +9,11 @@ import SocialLinkModal from "../components/SocialLinkModal";
 import { socialPlatforms } from "../utils/Icons";
 import { toast } from "react-toastify";
 import FadeIn from "../components/FadeIn";
+import React from "react";
+import { useOutletContext } from "react-router-dom";
 
-export default function ProfileSettings({ profile }) {
+function ProfileSettings() {
+  const { profile } = useOutletContext(); // ✅ get profile from parent Outlet
   const dispatch = useDispatch();
 
   const [editingField, setEditingField] = useState(null);
@@ -20,11 +23,6 @@ export default function ProfileSettings({ profile }) {
     try {
       await dispatch(updateProfile({ [field]: value })).unwrap();
       toast.success(`${field} updated`);
-
-      // ✅ Prevent scroll jump — manually restore scroll
-      setTimeout(() => {
-        window.scrollTo({ top: document.documentElement.scrollTop, behavior: "auto" });
-      }, 0);
     } catch (err) {
       toast.error(`Failed to update ${field}`);
     } finally {
@@ -37,15 +35,18 @@ export default function ProfileSettings({ profile }) {
     <div className="space-y-10 animate-fadeIn">
       <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
 
-      {/* === Avatar Upload === */}
+      {/* === Avatars Section === */}
       <FadeIn>
         <div className="bg-black/20 p-6 rounded-2xl">
-          <h3 className="font-semibold mb-3">Profile Picture</h3>
+          <h3 className="font-semibold mb-3">Profile Pictures</h3>
           <ImageUpload
-            field="avatar"
-            currentUrl={profile.avatar}
+            field="avatars"
+            avatars={profile.avatars || []}
+            activeAvatar={profile.activeAvatar}
             type="circle"
             size={128}
+            onAvatarSelect={(url) => handleSave("activeAvatar", url)}
+            onAvatarAdd={(avatars) => handleSave("avatars", avatars)}
           />
         </div>
       </FadeIn>
@@ -59,6 +60,7 @@ export default function ProfileSettings({ profile }) {
             currentUrl={profile.banner}
             type="rect"
             height={200}
+            onBannerChange={(url) => handleSave("banner", url)}
           />
         </div>
       </FadeIn>
@@ -68,7 +70,7 @@ export default function ProfileSettings({ profile }) {
         <div className="bg-black/20 p-6 rounded-2xl space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold">Name</h3>
+              <h3 className="font-semibold">Change Name</h3>
               <p className="text-gray-400">{profile.name}</p>
             </div>
             <button
@@ -81,7 +83,7 @@ export default function ProfileSettings({ profile }) {
 
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold">Tagline</h3>
+              <h3 className="font-semibold">Edit Tagline</h3>
               <p className="text-gray-400 font-bold">
                 {profile.tagline || "No tagline set"}
               </p>
@@ -100,7 +102,7 @@ export default function ProfileSettings({ profile }) {
       <FadeIn delay={0.3}>
         <div className="bg-black/20 p-6 rounded-2xl flex items-center justify-between">
           <div>
-            <h3 className="font-semibold">Bio</h3>
+            <h3 className="font-semibold">Edit Bio</h3>
             <p className="text-gray-400">{profile.bio || "No bio added yet"}</p>
           </div>
           <button
@@ -116,7 +118,7 @@ export default function ProfileSettings({ profile }) {
       <FadeIn delay={0.4}>
         <div className="bg-black/20 p-6 rounded-2xl flex items-center justify-between">
           <div>
-            <h3 className="font-semibold">Skills</h3>
+            <h3 className="font-semibold">Edit Skills</h3>
             <p className="text-gray-400">
               {profile.skills?.length > 0
                 ? profile.skills.join(", ")
@@ -135,7 +137,7 @@ export default function ProfileSettings({ profile }) {
       {/* === Social Links === */}
       <FadeIn delay={0.5}>
         <div className="bg-black/20 p-6 rounded-2xl">
-          <h3 className="font-semibold mb-3">Social Links</h3>
+          <h3 className="font-semibold mb-3">Edit Social Links</h3>
           <div className="flex gap-4">
             {["github", "linkedin", "instagram"].map((platform) => {
               const config = socialPlatforms[platform];
@@ -158,6 +160,30 @@ export default function ProfileSettings({ profile }) {
               );
             })}
           </div>
+        </div>
+      </FadeIn>
+
+      {/* === Anonymous Mode Button === */}
+      <FadeIn delay={0.6}>
+        <div className="bg-black/20 p-6 rounded-2xl flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold">Anonymous Mode</h3>
+            <p className="text-gray-400 text-sm">
+              {profile.anonymousMode
+                ? "Your name will be hidden when posting"
+                : "Your name will be visible"}
+            </p>
+          </div>
+          <button
+            onClick={() => handleSave("anonymousMode", !profile.anonymousMode)}
+            className={`px-4 py-2 rounded font-bold transition ${
+              profile.anonymousMode
+                ? "bg-green-600 hover:bg-green-500"
+                : "bg-red-600 hover:bg-red-500"
+            }`}
+          >
+            {profile.anonymousMode ? "ON" : "OFF"}
+          </button>
         </div>
       </FadeIn>
 
@@ -199,3 +225,5 @@ export default function ProfileSettings({ profile }) {
     </div>
   );
 }
+
+export default React.memo(ProfileSettings);

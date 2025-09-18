@@ -39,11 +39,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    avatar: {
+
+    // ✅ multi avatar support
+    avatars: [
+      {
+        type: String,
+        default:
+          "https://res.cloudinary.com/du30lufrc/image/upload/v1757866114/default_profile_pic_hozygj.jpg",
+      },
+    ],
+    activeAvatar: {
       type: String,
       default:
         "https://res.cloudinary.com/du30lufrc/image/upload/v1757866114/default_profile_pic_hozygj.jpg",
     },
+
     banner: {
       type: String,
       default:

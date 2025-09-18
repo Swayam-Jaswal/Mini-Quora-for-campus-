@@ -62,14 +62,20 @@ const profileSlice = createSlice({
         state.error = action.payload;
       })
       // updateProfile
+      // updateProfile
       .addCase(updateProfile.pending, (state) => {
-        state.loading = true;
+        // 👇 don’t reset the whole state.loading
+        // state.loading = true; ❌ remove this
         state.error = null;
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
-        state.loading = false;
-        state.data = action.payload;
+        // keep previous state and merge updates
+        state.data = {
+          ...state.data,
+          ...action.payload,
+        };
       })
+
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;

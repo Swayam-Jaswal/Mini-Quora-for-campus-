@@ -1,3 +1,4 @@
+// src/routes/AppRoutes.jsx
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoutes";
@@ -8,7 +9,7 @@ import VerifyEmail from "../features/auth/pages/VerifyEmail";
 import QnaList from "../features/ques&ans/pages/QnAList";
 import QuestionDetails from "../features/ques&ans/pages/QuestionDetails";
 import AdminDashboard from "../features/admin/pages/adminDashboard";
-import Profile from "../features/profile/pages/Profile";
+import ProfileRoutes from "../features/profile/routes/profileRoutes"; // ✅ now a component
 
 export default function AppRoutes() {
   return (
@@ -35,11 +36,12 @@ export default function AppRoutes() {
         }
       />
 
+      {/* ✅ Nest all profile routes */}
       <Route
-        path="/profile"
+        path="/profile/*"
         element={
           <ProtectedRoute>
-            <Profile />
+            <ProfileRoutes />
           </ProtectedRoute>
         }
       />

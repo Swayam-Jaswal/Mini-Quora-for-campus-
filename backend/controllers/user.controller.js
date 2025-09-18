@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 
-// Get logged-in user's profile
+// Get profile
 exports.getMyProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -14,7 +14,7 @@ exports.getMyProfile = async (req, res) => {
   }
 };
 
-// Update logged-in user's profile
+// Update profile
 exports.updateMyProfile = async (req, res) => {
   try {
     const allowed = [
@@ -22,18 +22,21 @@ exports.updateMyProfile = async (req, res) => {
       "bio",
       "tagline",
       "skills",
-      "avatar",
-      "banner",        // ✅ added banner
+      "avatar", // legacy single avatar
+      "avatars",
+      "activeAvatar",
+      "banner",
       "social",
       "anonymousMode",
       "privateProfile",
     ];
+
     const updates = {};
     allowed.forEach((k) => {
       if (req.body[k] !== undefined) updates[k] = req.body[k];
     });
 
-    // ✅ convert skills string → array if needed
+    // Skills normalize
     if (typeof updates.skills === "string") {
       updates.skills = updates.skills
         .split(",")
@@ -41,25 +44,39 @@ exports.updateMyProfile = async (req, res) => {
         .filter(Boolean);
     }
 
-    // ✅ remove empty social links completely
+    // ✅ Social normalize
     if (updates.social) {
-      Object.keys(updates.social).forEach((platform) => {
+      ["github", "linkedin", "instagram"].forEach((platform) => {
+        if (updates.social[platform] === undefined) return;
         if (!updates.social[platform]) {
-          updates.$unset = updates.$unset || {};
-          updates.$unset[`social.${platform}`] = "";
-          delete updates.social[platform];
+          updates.social[platform] = "";
         }
       });
-      if (Object.keys(updates.social).length === 0) delete updates.social;
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-password -verificationTokenHash -verificationExpires");
+    // ✅ Avatars handling
+    if (updates.avatar) {
+      // legacy: single avatar becomes activeAvatar
+      updates.activeAvatar = updates.avatar;
+      if (!updates.avatars) updates.avatars = [updates.avatar];
+      delete updates.avatar;
+    }
+
+    if (updates.avatars && Array.isArray(updates.avatars)) {
+      updates.avatars = updates.avatars.filter(Boolean);
+      // ensure activeAvatar is valid
+      if (!updates.activeAvatar && updates.avatars.length > 0) {
+        updates.activeAvatar = updates.avatars[0];
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password -verificationTokenHash -verificationExpires");
 
     if (!user) return res.status(404).json({ message: "User not found" });
-
     return res.json({ success: true, data: user });
   } catch (err) {
     return res.status(500).json({ message: err.message });
@@ -70,30 +87,22 @@ exports.updateMyProfile = async (req, res) => {
 exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-
     if (!currentPassword || !newPassword) {
-      return res
-        .status(400)
-        .json({ message: "Both current and new password are required" });
+      return res.status(400).json({ message: "Both current and new password are required" });
     }
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // check current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
-    // hash new password
-    const hashed = await bcrypt.hash(newPassword, 10);
-    user.password = hashed;
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Password updated successfully" });
+    return res.json({ success: true, message: "Password updated successfully" });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

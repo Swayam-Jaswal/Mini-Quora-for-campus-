@@ -1,11 +1,9 @@
 // src/features/profile/pages/Profile.jsx
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { Outlet } from "react-router-dom";
 import Navbar from "../../../components/layout/Navbar";
 import Sidebar from "../components/Sidebar";
-import ProfileOverview from "./ProfileOverview";
-import ProfileSettings from "./ProfileSettings";
-import ProfileSecurity from "./ProfileSecurity";
 import { fetchProfile } from "../slices/profileSlice";
 import { socialPlatforms } from "../utils/Icons";
 import FadeIn from "../components/FadeIn";
@@ -13,10 +11,9 @@ import FadeIn from "../components/FadeIn";
 export default function Profile() {
   const dispatch = useDispatch();
   const { data: profile, loading, error } = useSelector(
-    (state) => state.profile
+    (state) => state.profile,
+    shallowEqual
   );
-
-  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -40,11 +37,15 @@ export default function Profile() {
         {!loading && profile && (
           <div className="max-w-7xl mx-auto px-6 -mt-16 relative z-10 pb-8">
             <div className="flex items-end gap-6">
-              {/* ✅ Avatar (no edit) */}
+              {/* Avatar */}
               <FadeIn>
                 <div className="rounded-full shadow-lg shadow-black/40">
                   <img
-                    src={profile.avatar}
+                    src={
+                      profile.activeAvatar ||
+                      profile.avatar ||
+                      "https://res.cloudinary.com/du30lufrc/image/upload/v1757866114/default_profile_pic_hozygj.jpg"
+                    }
                     alt={profile.name}
                     className="w-44 h-44 rounded-full object-cover border-4 border-gray-800"
                   />
@@ -97,22 +98,11 @@ export default function Profile() {
 
       {/* ===== Main Content ===== */}
       <main className="flex-1 flex max-w-7xl mx-auto w-full px-6 py-10">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-
+        <Sidebar />
         <div className="flex-1 pl-6">
           {loading && <p className="text-gray-400">Loading profile...</p>}
           {error && <p className="text-red-400">Error: {error}</p>}
-          {!loading && profile && (
-            <>
-              {activeTab === "overview" && (
-                <ProfileOverview profile={profile} />
-              )}
-              {activeTab === "settings" && (
-                <ProfileSettings profile={profile} />
-              )}
-              {activeTab === "security" && <ProfileSecurity />}
-            </>
-          )}
+          {!loading && profile && <Outlet context={{ profile }} />}
         </div>
       </main>
     </div>

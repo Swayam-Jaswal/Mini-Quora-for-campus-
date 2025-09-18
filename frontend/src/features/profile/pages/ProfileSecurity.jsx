@@ -1,10 +1,9 @@
-// src/features/profile/pages/ProfileSecurity.jsx
 import React, { useState } from "react";
 import api from "../../../app/api";
 import { toast } from "react-toastify";
 import FadeIn from "../components/FadeIn";
 
-export default function ProfileSecurity() {
+function ProfileSecurity() {
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -76,3 +75,5 @@ export default function ProfileSecurity() {
     </FadeIn>
   );
 }
+
+export default React.memo(ProfileSecurity);
