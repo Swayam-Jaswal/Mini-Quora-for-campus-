@@ -3,21 +3,27 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ Normalize question so `author` is always consistent
 const normalizeQuestion = (q) => {
   const authorObj = q.author || {};
+  const avatar =
+    authorObj.activeAvatar && authorObj.activeAvatar.trim() !== ""
+      ? authorObj.activeAvatar
+      : authorObj.avatar || q.authorAvatar || null;
+
   return {
     ...q,
     author: {
       _id: authorObj._id || q.authorId || null,
       name: authorObj.name || q.authorName || "Anonymous User",
-      avatar: authorObj.avatar || q.authorAvatar || null,
+      avatar,
     },
     authorId: authorObj._id || q.authorId || null,
     authorName: authorObj.name || q.authorName || "Anonymous User",
-    authorAvatar: authorObj.avatar || q.authorAvatar || null,
+    authorAvatar: avatar,
   };
 };
+
+
 
 // 🔹 Fetch all questions
 export const fetchQuestions = createAsyncThunk(

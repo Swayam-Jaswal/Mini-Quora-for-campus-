@@ -2,7 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoutes";
-import Home from "../pages/Home";
+import Home from "../features/home/pages/Home";
 import Register from "../features/auth/pages/Signup";
 import Login from "../features/auth/pages/Login";
 import VerifyEmail from "../features/auth/pages/VerifyEmail";

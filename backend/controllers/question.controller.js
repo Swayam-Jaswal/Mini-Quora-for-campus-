@@ -1,3 +1,4 @@
+// controllers/question.controller.js
 const Question = require("../models/question");
 const Answer = require("../models/answer");
 const maskAuthor = require("../utils/maskAuthor");
@@ -21,7 +22,10 @@ const createQuestion = async (req, res) => {
       author: req.user.id,
     });
     await question.save();
-    await question.populate("author", "_id name email role avatar");
+    await question.populate(
+      "author",
+      "_id name email role avatar activeAvatar"
+    );
 
     const obj = maskAuthor(question);
 
@@ -42,7 +46,7 @@ const createQuestion = async (req, res) => {
 const getAllQuestions = async (req, res) => {
   try {
     const questions = await Question.find()
-      .populate("author", "_id name email role avatar")
+      .populate("author", "_id name email role avatar activeAvatar")
       .sort({ createdAt: -1 });
 
     const questionsWithCount = await Promise.all(
@@ -52,9 +56,10 @@ const getAllQuestions = async (req, res) => {
       })
     );
 
-    return res
-      .status(200)
-      .json({ message: "fetched all questions", questions: questionsWithCount });
+    return res.status(200).json({
+      message: "fetched all questions",
+      questions: questionsWithCount,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -69,7 +74,7 @@ const getQuestionById = async (req, res) => {
 
     const question = await Question.findById(id).populate(
       "author",
-      "_id name email role avatar"
+      "_id name email role avatar activeAvatar"
     );
     if (!question)
       return res.status(404).json({ message: "Question not found" });
@@ -113,7 +118,10 @@ const updateQuestion = async (req, res) => {
     }
 
     await question.save();
-    await question.populate("author", "_id name email role avatar");
+    await question.populate(
+      "author",
+      "_id name email role avatar activeAvatar"
+    );
 
     const obj = maskAuthor(question);
 

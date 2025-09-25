@@ -8,7 +8,7 @@ export default function Navbar() {
 
   return (
     <nav className="w-full flex items-center justify-between px-8 py-4 bg-black/30 backdrop-blur-md shadow-md">
-      <h1 className="text-2xl font-bold text-white">CampusConnect</h1>
+      <h1 className="text-2xl font-bold text-white">Mini Quora</h1>
 
       <div className="space-x-6 text-gray-200">
         <Link to="/" className="hover:text-white transition">Home</Link>

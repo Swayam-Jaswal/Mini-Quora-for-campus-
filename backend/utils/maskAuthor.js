@@ -16,17 +16,23 @@ function maskIfAnonymous(doc) {
     };
   }
 
-  // Non-anonymous
+  // 🔹 Non-anonymous: use activeAvatar first, then fallback
   return {
     ...obj,
     author: {
       _id: obj.author?._id || null,
       name: obj.author?.name || null,
-      avatar: obj.author?.avatar || null, // 🔹 include avatar from user profile
+      avatar:
+        obj.author?.activeAvatar ||
+        obj.author?.avatar ||
+        null, // ✅ support new schema
     },
     authorId: obj.author?._id || null,
     authorName: obj.author?.name || null,
-    authorAvatar: obj.author?.avatar || null,
+    authorAvatar:
+      obj.author?.activeAvatar ||
+      obj.author?.avatar ||
+      null, // ✅ support new schema
   };
 }
 

@@ -83,6 +83,24 @@ exports.updateMyProfile = async (req, res) => {
   }
 };
 
+// Get another user's public profile by ID
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select(
+      "-password -verificationTokenHash -verificationExpires"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 // Change password
 exports.changePassword = async (req, res) => {
   try {

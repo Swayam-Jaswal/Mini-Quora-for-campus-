@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MoreVertical, UserCircle2 } from "lucide-react";
 import { deleteQuestion, updateQuestion } from "../slices/questionSlice";
 import { toast } from "react-toastify";
@@ -66,17 +66,25 @@ export default function QuestionCard({
           {isAnonymous ? (
             <UserCircle2 className="w-9 h-9 text-gray-400" />
           ) : (
-            <img
-              src={author?.avatar || authorAvatar || "/default-avatar.png"}
-              alt="avatar"
-              className="w-9 h-9 rounded-full object-cover border border-gray-600"
-              onError={(e) => (e.target.src = "/default-avatar.png")}
-            />
+            <Link to={`/profile/${authorId}`}>
+              <img
+                src={author?.avatar || "/default-avatar.png"}
+                alt="avatar"
+                className="w-9 h-9 rounded-full object-cover border border-gray-600"
+                onError={(e) => (e.target.src = "/default-avatar.png")}
+              />
+            </Link>
           )}
           <div>
-            <h4 className="text-sm font-semibold text-white">
-              {isAnonymous ? "Anonymous User" : isAuthor ? "You" : author?.name || authorName}
-            </h4>
+            <Link to={`/profile/${authorId}`}>
+              <h4 className="text-sm font-semibold text-white">
+                {isAnonymous
+                  ? "Anonymous User"
+                  : isAuthor
+                  ? "You"
+                  : author?.name || authorName}
+              </h4>
+            </Link>
             <p className="text-xs text-gray-400">
               Asked <TimeAgo date={createdAt} />
             </p>

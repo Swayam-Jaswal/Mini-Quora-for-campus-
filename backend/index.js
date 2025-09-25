@@ -19,7 +19,7 @@ const userRoutes = require("./routes/user.routes");
 const app = express();
 mongoDB();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 const allowedOrigins = (process.env.FRONTEND_BASE_URL || "")
   .split(",")
@@ -61,5 +61,5 @@ const io = initSocket(server, allowedOrigins);
 app.set("io", io);
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(` Server running on port ${PORT}`);
 });

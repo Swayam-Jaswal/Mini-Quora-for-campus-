@@ -1,7 +1,6 @@
-// src/features/profile/pages/Profile.jsx
 import { useEffect } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Outlet } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
 import Navbar from "../../../components/layout/Navbar";
 import Sidebar from "../components/Sidebar";
 import { fetchProfile } from "../slices/profileSlice";
@@ -9,15 +8,21 @@ import { socialPlatforms } from "../utils/Icons";
 import FadeIn from "../components/FadeIn";
 
 export default function Profile() {
+  const { userId } = useParams(); // /profile/:userId
   const dispatch = useDispatch();
   const { data: profile, loading, error } = useSelector(
     (state) => state.profile,
     shallowEqual
   );
 
+  const { user } = useSelector((state) => state.auth); // 👈 logged-in user
+
+  const isOwnProfile =
+    !userId || String(userId) === String(user?._id || user?.id);
+
   useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch]);
+    dispatch(fetchProfile(userId || "me"));
+  }, [dispatch, userId]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#29323C] to-[#485563] text-white">
@@ -44,7 +49,7 @@ export default function Profile() {
                     src={
                       profile.activeAvatar ||
                       profile.avatar ||
-                      "https://res.cloudinary.com/du30lufrc/image/upload/v1757866114/default_profile_pic_hozygj.jpg"
+                      "/default-avatar.png"
                     }
                     alt={profile.name}
                     className="w-44 h-44 rounded-full object-cover border-4 border-gray-800"
@@ -98,8 +103,9 @@ export default function Profile() {
 
       {/* ===== Main Content ===== */}
       <main className="flex-1 flex max-w-7xl mx-auto w-full px-6 py-10">
-        <Sidebar />
-        <div className="flex-1 pl-6">
+        {/* 👇 Only show sidebar if it's own profile */}
+        {isOwnProfile && <Sidebar />}
+        <div className={isOwnProfile ? "flex-1 pl-6" : "flex-1"}>
           {loading && <p className="text-gray-400">Loading profile...</p>}
           {error && <p className="text-red-400">Error: {error}</p>}
           {!loading && profile && <Outlet context={{ profile }} />}

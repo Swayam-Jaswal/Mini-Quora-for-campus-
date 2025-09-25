@@ -1,8 +1,8 @@
 import React from "react";
-import Navbar from "../components/layout/Navbar";
-import Announcements from "../features/announcements/components/Announcements";
-import QuickLinks from "../components/layout/QuickLinks";
-import UniversityUpdates from "../components/layout/UniversityUpdates";
+import Navbar from "../../../components/layout/Navbar";
+import Announcements from "../../announcements/components/Announcements";
+import QuickLinks from "../components/QuickLinks";
+import UniversityUpdates from "../components/UniversityUpdates";
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#29323C] to-[#485563] text-white">

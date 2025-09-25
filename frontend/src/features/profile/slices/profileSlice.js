@@ -7,17 +7,17 @@ import api from "../../../app/api";
  */
 export const fetchProfile = createAsyncThunk(
   "profile/fetch",
-  async (_, { rejectWithValue }) => {
+  async (userId = "me", { rejectWithValue }) => {
     try {
-      const res = await api.get("/api/users/me");
+      const url = userId === "me" ? "/api/users/me" : `/api/users/${userId}`;
+      const res = await api.get(url);
       return res.data.data;
     } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to load profile"
-      );
+      return rejectWithValue(err.response?.data?.message || "Failed to load profile");
     }
   }
 );
+
 
 /**
  * Update logged-in user profile
