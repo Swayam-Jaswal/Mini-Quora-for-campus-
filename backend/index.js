@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 require("dotenv").config();
+const path = require("path");
 
 const mongoDB = require("./config/db");
 
@@ -17,6 +18,7 @@ const requestRoutes = require("./routes/request.routes");
 const userRoutes = require("./routes/user.routes");
 
 const app = express();
+app.use("/uploads", require("express").static(path.join(__dirname, "uploads")));
 mongoDB();
 
 const PORT = process.env.PORT;
@@ -50,6 +52,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/updates", require("./routes/update.routes"));
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 

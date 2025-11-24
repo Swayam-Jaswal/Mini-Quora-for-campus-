@@ -1,1 +1,113 @@
 @import "tailwindcss";
+
+/* src/index.css */
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
+  background: linear-gradient(180deg, #0f1724, #0c1623);
+  color: #e6eef8;
+}
+
+/* UNIVERSAL PANEL STYLE (used everywhere) */
+.panel {
+  background: linear-gradient(180deg, rgba(8, 12, 20, 0.62), rgba(7, 10, 18, 0.6));
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 30px rgba(6, 10, 20, 0.6);
+}
+
+/* Glass look for composer + cards */
+.panel-glass {
+  background: linear-gradient(180deg, rgba(13, 21, 32, 0.62), rgba(10, 16, 26, 0.6));
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+}
+
+/* Inputs focus effect */
+.input-focus:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(91, 102, 255, 0.2);
+  border-color: rgba(91, 102, 255, 0.6);
+}
+
+/* Placeholder color for composer */
+.composer-placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Avatar circle */
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #6c7cff, #b56bff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Muted text */
+.muted {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Card actions row */
+.card-actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Smooth hover */
+button, a {
+  transition: 0.2s ease;
+}
+
+/* Remove default scroll styling */
+::-webkit-scrollbar {
+  width: 7px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Image grid styling */
+.update-image {
+  border-radius: 14px;
+  object-fit: cover;
+  width: 100%;
+  max-height: 280px;
+}
+
+/* Headings for sections */
+.section-title {
+  background: linear-gradient(90deg, #5cc8ff, #c191ff);
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+/* Layout padding */
+.page-container {
+  padding: 2rem;
+}

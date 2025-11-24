@@ -1,7 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 
-// Get profile
 exports.getMyProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -22,7 +21,7 @@ exports.updateMyProfile = async (req, res) => {
       "bio",
       "tagline",
       "skills",
-      "avatar", // legacy single avatar
+      "avatar",
       "avatars",
       "activeAvatar",
       "banner",
@@ -36,7 +35,6 @@ exports.updateMyProfile = async (req, res) => {
       if (req.body[k] !== undefined) updates[k] = req.body[k];
     });
 
-    // Skills normalize
     if (typeof updates.skills === "string") {
       updates.skills = updates.skills
         .split(",")
@@ -44,7 +42,6 @@ exports.updateMyProfile = async (req, res) => {
         .filter(Boolean);
     }
 
-    // ✅ Social normalize
     if (updates.social) {
       ["github", "linkedin", "instagram"].forEach((platform) => {
         if (updates.social[platform] === undefined) return;
@@ -54,9 +51,7 @@ exports.updateMyProfile = async (req, res) => {
       });
     }
 
-    // ✅ Avatars handling
     if (updates.avatar) {
-      // legacy: single avatar becomes activeAvatar
       updates.activeAvatar = updates.avatar;
       if (!updates.avatars) updates.avatars = [updates.avatar];
       delete updates.avatar;
@@ -64,7 +59,6 @@ exports.updateMyProfile = async (req, res) => {
 
     if (updates.avatars && Array.isArray(updates.avatars)) {
       updates.avatars = updates.avatars.filter(Boolean);
-      // ensure activeAvatar is valid
       if (!updates.activeAvatar && updates.avatars.length > 0) {
         updates.activeAvatar = updates.avatars[0];
       }

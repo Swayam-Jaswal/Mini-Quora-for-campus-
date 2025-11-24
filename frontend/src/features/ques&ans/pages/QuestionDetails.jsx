@@ -1,3 +1,5 @@
+// src/features/qna/pages/QuestionDetailsPage.jsx
+
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -19,6 +21,7 @@ import QuestionCard from "../components/QuestionCard";
 import AnswerCard from "../components/AnswerCard";
 import AnswerForm from "../components/AnswerForm";
 import Navbar from "../../../components/layout/Navbar";
+import QuickLinks from "../../home/components/QuickLinks";
 import BackButton from "../../../components/common/BackButton";
 import { socket } from "../../../app/socket";
 
@@ -36,11 +39,10 @@ export default function QuestionDetailsPage() {
   useEffect(() => {
     dispatch(fetchQuestionById(id));
     dispatch(fetchAnswers(id));
-    return () => {
-      dispatch(clearAnswers());
-    };
+    return () => dispatch(clearAnswers());
   }, [dispatch, id]);
 
+  // SOCKET EVENTS
   useEffect(() => {
     const onCreated = ({ questionId, answer }) => {
       if (questionId === id) {
@@ -85,32 +87,47 @@ export default function QuestionDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#29323C] to-[#485563] text-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0f1724] to-[#0c1623] text-white">
       <Navbar />
-      <main className="flex-1 p-6 flex justify-center">
-        <div className="w-full max-w-3xl bg-black/20 rounded-2xl p-6 shadow-lg flex flex-col">
+
+      {/* MAIN LAYOUT — SAME AS HOMEPAGE & QNA */}
+      <div className="flex flex-1 px-6 py-8 gap-6">
+
+        {/* LEFT SIDEBAR */}
+        <aside className="w-64 hidden lg:block">
+          <div className="space-y-6">
+            <QuickLinks />
+          </div>
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <main className="flex-1 min-w-0 bg-black/20 rounded-2xl p-6 shadow-lg">
+
           <BackButton to="/qna" label="Back to Questions" />
+
+          {/* Question */}
           {questionLoading ? (
-            <p className="text-gray-400">Loading question...</p>
+            <p className="text-gray-400 mt-4">Loading question...</p>
           ) : question ? (
             <QuestionCard
               id={question._id}
               title={question.title}
               body={question.body}
               tags={question.tags}
-              author={question.author}              // ✅ pass full author object
+              author={question.author}
               authorId={question.author?._id}
               authorName={question.author?.name}
-              authorAvatar={question.author?.avatar} // ✅ pass avatar
+              authorAvatar={question.author?.avatar}
               isAnonymous={question.isAnonymous}
               createdAt={question.createdAt}
               showFooter={false}
             />
           ) : (
-            <p className="text-red-400">Question not found</p>
+            <p className="text-red-400 mt-4">Question not found</p>
           )}
 
-          <div className="mt-6">
+          {/* Write Answer */}
+          <div className="mt-8">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <MessageSquarePlus size={18} />
               Write your answer
@@ -118,21 +135,23 @@ export default function QuestionDetailsPage() {
             <AnswerForm onSubmit={handleAnswerSubmit} />
           </div>
 
+          {/* Answers */}
           {answersLoading && (
             <p className="text-gray-400 mt-4">Loading answers...</p>
           )}
-          <div className="space-y-3 flex-1 mt-6">
+
+          <div className="space-y-4 mt-6">
             {answers?.map((a) => (
-              <div key={a._id} className="flex items-start gap-2">
+              <div key={a._id} className="flex items-start gap-3">
                 <CornerDownRight className="text-gray-400 mt-1 w-5 h-5" />
                 <div className="flex-1">
                   <AnswerCard
                     id={a._id}
                     body={a.body}
-                    author={a.author}               // ✅ pass full author object
+                    author={a.author}
                     authorId={a.author?._id}
                     authorName={a.author?.name}
-                    authorAvatar={a.author?.avatar} // ✅ pass avatar
+                    authorAvatar={a.author?.avatar}
                     isAnonymous={a.isAnonymous}
                     attachments={a.attachments}
                     date={a.createdAt}
@@ -141,8 +160,8 @@ export default function QuestionDetailsPage() {
               </div>
             ))}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

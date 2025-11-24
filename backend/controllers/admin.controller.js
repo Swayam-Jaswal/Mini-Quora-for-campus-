@@ -3,15 +3,12 @@ const AdminCode = require("../models/adminCode");
 const ModeratorCode = require("../models/moderatorCode");
 const User = require("../models/user");
 
-// --- Dashboard Models ---
 const Question = require("../models/question");
 const Answer = require("../models/answer");
 const Request = require("../models/request");
 const Announcement = require("../models/announcements");
 
-// === Codes ===
 
-// ✅ Superadmin: generate Admin code
 const generateAdminCode = async (req, res) => {
   try {
     const code = crypto.randomBytes(6).toString("hex");
@@ -33,7 +30,6 @@ const generateAdminCode = async (req, res) => {
   }
 };
 
-// ✅ Admin + Superadmin: generate Moderator code
 const generateModeratorCode = async (req, res) => {
   try {
     const code = crypto.randomBytes(6).toString("hex");
@@ -55,9 +51,7 @@ const generateModeratorCode = async (req, res) => {
   }
 };
 
-// === Role Management ===
 
-// Promote to moderator
 const promoteToModerator = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -79,7 +73,6 @@ const promoteToModerator = async (req, res) => {
   }
 };
 
-// Promote to admin
 const promoteToAdmin = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -104,7 +97,6 @@ const promoteToAdmin = async (req, res) => {
   }
 };
 
-// Demote moderator → user
 const demoteToUser = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -192,25 +184,100 @@ const deleteCode = async (req, res) => {
 // === Dashboard ===
 const getStats = async (req, res) => {
   try {
-    const [users, questions, answers, announcements, pendingRequests] = await Promise.all([
+    const [
+      usersCount,
+      usersByRoleAgg,
+      questionsCount,
+      answersCount,
+      announcementsCount,
+      pendingRequests,
+      recentQuestions,
+      questionsPerDay
+    ] = await Promise.all([
+      // Total users
       User.countDocuments(),
+
+      // Users grouped by role
+      User.aggregate([
+        { $group: { _id: "$role", count: { $sum: 1 } } },
+      ]),
+
+      // Total questions
       Question.countDocuments(),
+
+      // Total answers
       Answer.countDocuments(),
+
+      // Total announcements
       Announcement.countDocuments(),
+
+      // Pending join/role requests
       Request.countDocuments({ status: "pending" }),
+
+      // Last 5 newest questions
+      Question.aggregate([
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            createdAt: 1,
+            author: 1,
+          },
+        },
+      ]),
+
+      // ⭐ Questions posted over the last 7 days
+      Question.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // last 7 days
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
     ]);
 
-    return res.status(200).json({
-      users,
-      questions,
-      answers,
-      announcements,
-      pendingRequests,
+    // Transform usersByRoleAgg array → object
+    const usersByRole = {};
+    (usersByRoleAgg || []).forEach((r) => {
+      usersByRole[r._id || "unknown"] = r.count;
     });
+
+    return res.status(200).json({
+      usersCount: usersCount || 0,
+      usersByRole,
+      questionsCount: questionsCount || 0,
+      answersCount: answersCount || 0,
+      announcementsCount: announcementsCount || 0,
+      pendingRequests: pendingRequests || 0,
+
+      recentQuestions: recentQuestions || [],
+
+      // ⭐ Added for Line Chart
+      questionsPerDay: questionsPerDay || [],
+    });
+
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch stats", error: error?.message || error });
+    console.error("getStats error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch stats",
+      error: error?.message || error,
+    });
   }
 };
+
 
 const getUsers = async (req, res) => {
   try {

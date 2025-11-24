@@ -22,7 +22,7 @@ const adminCodeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
   message: "Too many admin code requests. Please try again later.",
-  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req), // ✅ IPv6 safe
+  keyGenerator: (req) => req.user?.id || req.ip,
 });
 
 // === Superadmin-only routes ===
@@ -38,7 +38,8 @@ router.get("/codes", verifyToken, checkRole("admin"), getCodes);
 router.delete("/codes/:id", verifyToken, checkRole("admin"), deleteCode);
 
 // === Dashboard stats (admin + moderator + superadmin) ===
-router.get("/stats", verifyToken, allowRoles("admin", "moderator"), getStats);
+// NOTE: include superadmin as allowed role so superadmins can access stats
+router.get("/stats", verifyToken, allowRoles("admin", "moderator", "superadmin"), getStats);
 
 // === User management (admin + superadmin) ===
 router.get("/users", verifyToken, checkRole("admin"), getUsers);

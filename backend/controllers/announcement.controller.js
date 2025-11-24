@@ -97,7 +97,8 @@ const deleteAnnouncement = async (req, res) => {
       return res.status(404).json({ success: false, message: "Announcement not found" });
     }
 
-    if (!["admin", "moderator"].includes(req.user.role)) {
+    // FIXED ROLE CHECK
+    if (!["admin", "moderator", "superadmin"].includes(req.user.role)) {
       return res
         .status(403)
         .json({ success: false, message: "Unauthorized to delete this announcement" });
@@ -105,18 +106,22 @@ const deleteAnnouncement = async (req, res) => {
 
     await announcement.deleteOne();
 
-    // ✅ emit delete event
+    // Emit delete event
     req.app.get("io").to("announcements").emit("announcement:deleted", req.params.id);
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Announcement deleted successfully" });
+    return res.status(200).json({
+      success: true,
+      message: "Announcement deleted successfully",
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Couldn't delete announcement", error });
+    return res.status(500).json({
+      success: false,
+      message: "Couldn't delete announcement",
+      error,
+    });
   }
 };
+
 
 module.exports = {
   createAnnouncement,

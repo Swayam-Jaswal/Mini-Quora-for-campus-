@@ -1,29 +1,43 @@
+// src/components/layout/Navbar.jsx
+import React from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { isAtLeast } from "../../utils/roles"; // adjust path if needed
 
 export default function Navbar() {
-  const { user } = useSelector((state) => state.auth);
-  const role = user?.role || "user";
-
   return (
-    <nav className="w-full flex items-center justify-between px-8 py-4 bg-black/30 backdrop-blur-md shadow-md">
-      <h1 className="text-2xl font-bold text-white">Mini Quora</h1>
+    <header className="w-full panel py-3 px-6 flex items-center justify-between sticky top-0 z-40">
+      {/* Left Section */}
+      <div className="flex items-center gap-4">
+        {/* Logo */}
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#6c7cff] to-[#b56bff] text-white font-bold">
+          MQ
+        </div>
 
-      <div className="space-x-6 text-gray-200">
-        <Link to="/" className="hover:text-white transition">Home</Link>
-        <Link to="/qna" className="hover:text-white transition">Q&A</Link>
-        <Link to="/profile" className="hover:text-white transition">Profile</Link>
+        {/* Brand Name */}
+        <div className="text-white font-bold text-lg">Mini Quora</div>
 
-        {isAtLeast(role, "moderator") && (
-          <Link
-            to="/admin"
-            className="hover:text-white transition font-semibold text-yellow-300"
-          >
-            {role === "moderator" ? "Moderator Dashboard" : "Admin Dashboard"}
-          </Link>
-        )}
       </div>
-    </nav>
+
+      {/* Right Section */}
+      <nav className="flex items-center gap-6 text-white/80 font-medium">
+        <Link to="/" className="hover:text-white transition">
+          Home
+        </Link>
+        <Link to="/qna" className="hover:text-white transition">
+          Q&A
+        </Link>
+        
+        <Link to="/admin" className="text-[#f6e05e] hover:opacity-90 transition">
+          Admin Dashboard
+        </Link>
+
+        {/* Icons */}
+        <div className="w-8 h-8 rounded-full bg-black/30 flex items-center justify-center">
+          🔔
+        </div>
+        <Link to="/profile" className="hover:text-white transition">
+          👤
+        </Link>
+      </nav>
+    </header>
   );
 }
